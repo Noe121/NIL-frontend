@@ -1,0 +1,32 @@
+# Node modules
+node_modules/
+
+# Build output
+/dist/
+
+# Local env files
+.env
+.env.local
+
+# Mac system files
+.DS_Store
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vite cache
+.vite/
+
+# S3 static output (if any)
+/public/*.tmp
+
+# Ignore everything except tracked files
+# Uncomment below to ignore all files except those already added
+# *
+# !.gitignore
+# !README.md
+# !src/
+# !public/
+# !index.html

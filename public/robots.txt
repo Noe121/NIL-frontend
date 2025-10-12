@@ -1,0 +1,4 @@
+User-agent: *
+Disallow:
+
+# Allow all bots. Adjust as needed for privacy or SEO.
