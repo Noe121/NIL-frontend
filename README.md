@@ -8,6 +8,7 @@ This is the frontend for NILbx.com, built with React and Vite. It provides a lan
 - Styled landing page for athletes, sponsors, and fans
 - Early access form (Formspree integration)
 - API demo component for backend integration
+- Login/Register UI with JWT authentication (integrates with auth-service)
 
 ## Getting Started
 1. Install dependencies:
@@ -32,13 +33,23 @@ This is the frontend for NILbx.com, built with React and Vite. It provides a lan
 - `assets/` - Images, icons, styles
 - `index.html` - Main HTML entry point
 
-## API Integration
+
+## API & Auth Integration
 Connects to the backend API (`dev-api-service`) at the ALB DNS endpoint (retrieve from AWS Console > EC2 > Load Balancers > `dev-nilbx-alb`).
 The API demo component in `src/ApiDemo.jsx` shows example usage (update with ALB DNS).
 
+### JWT Authentication
+- The frontend provides a login/register UI at `/auth` (see `src/Auth.jsx`).
+- On successful login, a JWT is stored in `localStorage` and attached to all API requests via the `Authorization: Bearer <token>` header.
+- Protected routes (e.g., `/`) require a valid JWT; unauthenticated users are redirected to `/auth`.
+- The JWT is validated by the backend (`api-service`) using `AUTH_SECRET_KEY`.
+- The frontend expects the following environment variables:
+	- `REACT_APP_API_URL`: Backend API base URL (e.g., `http://localhost:8000/`)
+	- `REACT_APP_AUTH_SERVICE_URL`: Auth service base URL (e.g., `http://localhost:9000/`)
+
 
 ## Automated Integration Workflow
-To validate frontend-backend integration automatically:
+To validate frontend-backend integration and authentication automatically:
 
 ### 1. Environment Setup
 - Ensure Node.js and npm are installed.
@@ -47,9 +58,10 @@ To validate frontend-backend integration automatically:
 	cd api-service && pip install -r requirements.txt
 	cd ../frontend && npm install
 	```
-- Set the API URL for frontend integration (e.g., in `.env` or as an environment variable):
+- Set the API and Auth service URLs for frontend integration (in `.env` or as environment variables):
 	```sh
 	export REACT_APP_API_URL=http://localhost:8000/
+	export REACT_APP_AUTH_SERVICE_URL=http://localhost:9000/
 	```
 
 ### 2. SSH Tunnel (Generalized)
@@ -71,8 +83,16 @@ This script will:
 
 #### Dependencies
 - Backend must be runnable via Uvicorn (see `api-service/src/main.py`)
+- Auth service must be running (see `auth-service/main.py`)
 - Integration test script (`test_landingpage_integration.js`) must exist in `frontend`
 - SSH tunnel must be active for DB connectivity
+
+## Auth Flow
+
+1. User visits `/auth` to login or register (role selection supported).
+2. On login, JWT is stored in `localStorage` and used for all API requests.
+3. Protected routes require a valid JWT; users are redirected to `/auth` if not authenticated.
+4. To logout, clear the JWT from `localStorage`.
 
 ## Deployment
 

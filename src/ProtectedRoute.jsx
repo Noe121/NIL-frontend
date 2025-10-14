@@ -1,0 +1,10 @@
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+
+export default function ProtectedRoute({ children }) {
+  const jwt = localStorage.getItem('jwt');
+  if (!jwt) {
+    return <Navigate to="/auth" replace />;
+  }
+  return children;
+}

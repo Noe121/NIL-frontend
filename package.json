@@ -20,7 +20,9 @@
   "homepage": "https://github.com/Noe121/NIL-frontend#readme",
   "dependencies": {
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "axios": "^1.6.0",
+    "react-router-dom": "^6.23.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.0.4",

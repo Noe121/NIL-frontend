@@ -7,6 +7,8 @@ node_modules/
 # Local env files
 .env
 .env.local
+# Auth/JWT config (do not commit secrets)
+.env.*
 
 # Mac system files
 .DS_Store
