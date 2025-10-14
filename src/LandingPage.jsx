@@ -1,5 +1,82 @@
 
+
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 export default function LandingPage() {
+  const [athletes, setAthletes] = useState([]);
+  const [formData, setFormData] = useState({ name: '', email: '', role: '' });
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [loadingAthletes, setLoadingAthletes] = useState(false);
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+
+  // TODO: Replace with your ALB DNS or use env variable
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/';
+
+  // Fetch athletes on mount
+  useEffect(() => {
+    setLoadingAthletes(true);
+    axios.get(`${apiUrl}athletes`)
+      .then(response => {
+        if (Array.isArray(response.data)) {
+          setAthletes(response.data);
+        } else if (response.data.athletes) {
+          setAthletes(response.data.athletes);
+        }
+        setError('');
+      })
+      .catch(error => {
+        setError('Error fetching athletes');
+        setAthletes([]);
+      })
+      .finally(() => setLoadingAthletes(false));
+  }, [apiUrl]);
+
+  // Simple email validation
+  const validateEmail = (email) => {
+    return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
+  };
+
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setMessage('');
+    setError('');
+
+    // Client-side validation
+    if (!formData.name.trim()) {
+      setError('Name is required');
+      return;
+    }
+    if (!validateEmail(formData.email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    if (!formData.role) {
+      setError('Please select your role');
+      return;
+    }
+
+    setLoadingSubmit(true);
+    axios.post(`${apiUrl}early-access`, formData)
+      .then(response => {
+        setMessage(response.data.message || 'Submitted!');
+        setError('');
+        setFormData({ name: '', email: '', role: '' });
+      })
+      .catch(error => {
+        setError('Error submitting form');
+        setMessage('');
+      })
+      .finally(() => setLoadingSubmit(false));
+  };
+
+  // Handle input change
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError('');
+  };
+
   return (
     <>
       <style>{`
@@ -23,6 +100,9 @@ export default function LandingPage() {
         .social-links a:hover { text-decoration: underline; }
         .social-links img { width: 24px; vertical-align: middle; margin-right: 0.3rem; }
         footer { text-align: center; color: #888; margin: 2rem 0 1rem; font-size: 0.9rem; }
+        .athlete-list { margin-top: 1rem; }
+        .athlete-list ul { list-style: none; padding: 0; }
+        .athlete-list li { padding: 0.5rem; border-bottom: 1px solid #eee; }
       `}</style>
       <header>
         <h1>NILbx.com</h1>
@@ -35,6 +115,24 @@ export default function LandingPage() {
         <section>
           <h2>For Athletes</h2>
           <p>Showcase your skills, grow your personal brand, and unlock NIL opportunities. NILbx connects you with sponsors, investors, and fans to support your journey to greatness.</p>
+          <div className="athlete-list">
+            <h3>Featured Athletes</h3>
+            {loadingAthletes ? (
+              <p>Loading athletes...</p>
+            ) : error ? (
+              <p style={{ color: 'red' }}>{error}</p>
+            ) : (
+              <ul>
+                {athletes.length === 0 ? (
+                  <li>No athletes found.</li>
+                ) : (
+                  athletes.map((athlete, index) => (
+                    <li key={index}>{athlete.name || athlete[0] || 'Unnamed Athlete'}</li>
+                  ))
+                )}
+              </ul>
+            )}
+          </div>
         </section>
         <section>
           <h2>For Sponsors & Boosters</h2>
@@ -46,18 +144,43 @@ export default function LandingPage() {
         </section>
         <div className="form-container">
           <h3>Get Early Access</h3>
-          <form action="https://formspree.io/f/mknkzjnp" method="POST">
-            <input type="text" name="name" placeholder="Your Name" required />
-            <input type="email" name="email" placeholder="Your Email" required />
-            <select name="role" required>
+          <form onSubmit={handleSubmit}>
+            <input
+              type="text"
+              name="name"
+              placeholder="Your Name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              disabled={loadingSubmit}
+            />
+            <input
+              type="email"
+              name="email"
+              placeholder="Your Email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              disabled={loadingSubmit}
+            />
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              required
+              disabled={loadingSubmit}
+            >
               <option value="">I am a...</option>
               <option value="athlete">Athlete</option>
               <option value="sponsor">Sponsor/Booster</option>
               <option value="fan">Fan</option>
             </select>
-            <button type="submit">Notify Me</button>
+            <button type="submit" disabled={loadingSubmit}>
+              {loadingSubmit ? 'Submitting...' : 'Notify Me'}
+            </button>
           </form>
-          <p style={{marginTop: '1rem', color: '#1e3c72'}}>Thank you! We'll notify you when we launch.</p>
+          {error && <p style={{ marginTop: '1rem', color: 'red' }}>{error}</p>}
+          {message && <p style={{ marginTop: '1rem', color: '#1e3c72' }}>{message}</p>}
         </div>
         <div className="social-links">
           <h4>Connect with us:</h4>
