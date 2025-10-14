@@ -36,17 +36,45 @@ This is the frontend for NILbx.com, built with React and Vite. It provides a lan
 Connects to the backend API (`dev-api-service`) at the ALB DNS endpoint (retrieve from AWS Console > EC2 > Load Balancers > `dev-nilbx-alb`).
 The API demo component in `src/ApiDemo.jsx` shows example usage (update with ALB DNS).
 
+
 ## Automated Integration Workflow
 To validate frontend-backend integration automatically:
-1. Ensure the SSH tunnel to RDS is active:
+
+### 1. Environment Setup
+- Ensure Node.js and npm are installed.
+- Install dependencies in both `api-service` and `frontend`:
 	```sh
-	ssh -i ~/.ssh/NILbx-kp1.pem -L 3306:terraform-2025101402570281240000000a.cuj2i2c6otax.us-east-1.rds.amazonaws.com:3306 ec2-user@54.226.88.235
+	cd api-service && pip install -r requirements.txt
+	cd ../frontend && npm install
 	```
-2. Run the integration workflow script:
+- Set the API URL for frontend integration (e.g., in `.env` or as an environment variable):
+	```sh
+	export REACT_APP_API_URL=http://localhost:8000/
+	```
+
+### 2. SSH Tunnel (Generalized)
+Set up an SSH tunnel to your RDS or MySQL instance. Example:
+	```sh
+	ssh -i <your-key.pem> -L 3306:<your-rds-endpoint>:3306 ec2-user@<your-ec2-host>
+	```
+Replace `<your-key.pem>`, `<your-rds-endpoint>`, and `<your-ec2-host>` with your actual values.
+
+### 3. Integration Workflow Script
+Run the integration workflow script from the `frontend` directory:
 	```sh
 	./run_landingpage_integration.sh
 	```
-This will start the backend, run the integration test, and stop the backend automatically.
+This script will:
+- Start the backend FastAPI service (using Uvicorn)
+- Run the integration test script (`test_landingpage_integration.js`)
+- Stop the backend service
+
+#### Dependencies
+- Backend must be runnable via Uvicorn (see `api-service/src/main.py`)
+- Integration test script (`test_landingpage_integration.js`) must exist in `frontend`
+- SSH tunnel must be active for DB connectivity
+
+## Deployment
 
 ## Deployment
 Build the project:
