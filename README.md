@@ -36,6 +36,18 @@ This is the frontend for NILbx.com, built with React and Vite. It provides a lan
 Connects to the backend API (`dev-api-service`) at the ALB DNS endpoint (retrieve from AWS Console > EC2 > Load Balancers > `dev-nilbx-alb`).
 The API demo component in `src/ApiDemo.jsx` shows example usage (update with ALB DNS).
 
+## Automated Integration Workflow
+To validate frontend-backend integration automatically:
+1. Ensure the SSH tunnel to RDS is active:
+	```sh
+	ssh -i ~/.ssh/NILbx-kp1.pem -L 3306:terraform-2025101402570281240000000a.cuj2i2c6otax.us-east-1.rds.amazonaws.com:3306 ec2-user@54.226.88.235
+	```
+2. Run the integration workflow script:
+	```sh
+	./run_landingpage_integration.sh
+	```
+This will start the backend, run the integration test, and stop the backend automatically.
+
 ## Deployment
 Build the project:
 ```sh
