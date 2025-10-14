@@ -1,8 +1,10 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import LandingPage from './LandingPage.jsx';
 
 function App() {
-  return <h1>Welcome to NIL Frontend (React)</h1>;
+  return <LandingPage />;
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
