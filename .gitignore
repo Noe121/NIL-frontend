@@ -1,34 +1,145 @@
-# Node modules
+# =======================================================
+# NIL Frontend - React/Vite .gitignore
+# =======================================================
+
+# Dependencies
 node_modules/
+.pnp
+.pnp.js
 
-# Build output
+# Build Output
 /dist/
+/build/
+/out/
 
-# Local env files
+# Environment Files (Security Critical)
 .env
 .env.local
-# Auth/JWT config (do not commit secrets)
+.env.development.local
+.env.test.local
+.env.production.local
 .env.*
+!.env.example
 
-# Mac system files
-.DS_Store
+# Infrastructure Outputs
+NILbx-env/outputs.json
+endpoints.json
 
-# Log files
+# Secrets and Keys (Security Critical)
+AUTH_SECRET_KEY
+JWT_SECRET_KEY
+API_KEY
+*secret*
+*private*
+*.pem
+*.key
+
+# Vite
+.vite/
+.vite-cache/
+
+# Testing
+/coverage/
+.nyc_output
+*.lcov
+
+# Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Vite cache
-.vite/
+# Editor and IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+*.tmp
 
-# S3 static output (if any)
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+
+# Runtime Data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output (if applicable)
+.next
+
+# Nuxt.js build / generate output (if applicable)
+.nuxt
+dist
+
+# Gatsby files (if applicable)
+.cache/
+public
+
+# Storybook build outputs (if applicable)
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# S3 Static Output (for AWS deployment)
 /public/*.tmp
+s3-sync.log
 
-# Ignore everything except tracked files
-# Uncomment below to ignore all files except those already added
-# *
-# !.gitignore
-# !README.md
-# !src/
-# !public/
-# !index.html
+# Local development
+.local
+
+# Archive Files
+*.zip
+*.tar.gz
+
+# Backup Files
+*.backup
+*.bak
+
+# AWS Credentials
+.aws/
+aws-credentials.txt
+
+# TypeScript (if applicable)
+*.tsbuildinfo
+
+# Playwright (if using for testing)
+/test-results/
+/playwright-report/
+/playwright/.cache/

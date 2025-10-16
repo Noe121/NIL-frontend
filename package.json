@@ -4,8 +4,9 @@
   "description": "This project is structured for static content hosting (e.g., via S3) and can easily transition to a dynamic web application.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "vite"
+    "test": "node tests/test_landingpage_integration.js",
+    "dev": "vite",
+    "build": "vite build"
   },
   "repository": {
     "type": "git",

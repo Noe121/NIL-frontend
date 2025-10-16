@@ -7,5 +7,11 @@ export default defineConfig({
   publicDir: 'public',
   build: {
     outDir: 'dist',
+    rollupOptions: {
+      input: {
+        main: './index.html',
+        app: './index-react.html'
+      }
+    }
   },
 });
