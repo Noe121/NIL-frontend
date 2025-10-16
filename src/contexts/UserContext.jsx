@@ -142,4 +142,5 @@ export function useUser() {
   return context;
 }
 
+export { UserContext };
 export default UserContext;

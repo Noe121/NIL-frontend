@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext.jsx';
 import FormField from '../components/FormField.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
-import { validateEmail, validatePassword, validateRequired } from '../utils/validation.js';
+import { validators, validateForm } from '../utils/validation.js';
 
 const MultiStepRegister = () => {
   const navigate = useNavigate();
