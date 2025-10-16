@@ -9,6 +9,8 @@
     "test:coverage": "vitest --coverage",
     "test:components": "vitest tests/components/",
     "test:utils": "vitest tests/utils/",
+    "test:password-reset": "vitest tests/password-reset.test.jsx --run",
+    "test:forgot-password": "vitest tests/forgot-password.test.jsx --run",
     "test:integration": "node tests/integration/test_frontend_basic.js",
     "test:integration:aws": "node tests/integration/test_frontend_aws.js",
     "test:integration:landing": "node tests/integration/test_landingpage_integration.js",

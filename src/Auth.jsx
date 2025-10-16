@@ -126,6 +126,16 @@ export default function Auth() {
           </Button>
         </form>
 
+        {/* Forgot Password Link */}
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => navigate('/forgot-password')}
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            Forgot your password?
+          </button>
+        </div>
+
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">

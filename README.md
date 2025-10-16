@@ -10,10 +10,12 @@ This frontend integrates with microservices backend APIs and is hosted staticall
 ## ✨ Features
 - **Modern React SPA**: Built with React 18 and Vite for fast development
 - **Responsive Design**: Optimized for desktop, tablet, and mobile
+- **Complete Authentication System**: Login, register, and password reset with email verification
 - **Landing Page**: Engaging interface for athletes, sponsors, and fans
 - **Early Access Form**: Integrated with Formspree for lead capture
 - **API Integration**: Real-time connection to backend microservices
 - **JWT Authentication**: Secure login/register with role-based access
+- **Password Reset Flow**: Email-based password reset with secure token validation
 - **Cloud Ready**: Deployed on AWS S3 + CloudFront for global performance
 - **Dual Build System**: Static landing page + React SPA in one bundle (267KB)
 
@@ -168,14 +170,43 @@ The frontend automatically detects and switches between local and cloud endpoint
 ./sync_env.sh
 ```
 
-### 🔐 JWT Authentication Flow
-- **Registration/Login**: UI at `/auth` route (`src/Auth.jsx`)
-- **Token Storage**: JWT stored securely in `localStorage`
-- **API Headers**: Automatic `Authorization: Bearer <token>` on all requests
-- **Protected Routes**: Middleware redirects unauthenticated users to `/auth`
-- **Token Validation**: Backend validates using `AUTH_SECRET_KEY`
-- **Role Support**: User roles (athlete, sponsor, fan) for feature access
+### 🔐 Complete Authentication System
 
+#### **Core Authentication Features**
+- **Login/Register**: Toggle between login and registration on `/auth` route
+- **Password Reset**: Complete email-based password reset flow
+- **Token Management**: JWT stored securely in `localStorage` with automatic refresh
+- **API Integration**: Automatic `Authorization: Bearer <token>` headers on all requests
+- **Role-Based Access**: User roles (athlete, sponsor, fan) for feature-specific access
+- **Security**: Input validation, error handling, and secure token validation
+
+#### **Authentication Routes**
+- **`/auth`**: Login and registration forms with toggle functionality
+- **`/forgot-password`**: Email input for password reset requests
+- **`/reset-password?token=xyz`**: New password form with token validation
+
+#### **Password Reset Flow**
+1. **User clicks "Forgot your password?"** → Redirects to `/forgot-password`
+2. **User enters email address** → Backend sends reset email via SMTP
+3. **User clicks email link** → Opens `/reset-password?token=<secure-token>`
+4. **User enters new password** → Password updated in database with validation
+5. **Success redirect** → User can login with new credentials
+
+#### **Authentication Components**
+- **Inline Authentication**: Built directly in `App.jsx` to avoid import issues
+- **Error Handling**: Comprehensive error messages for failed requests
+- **Loading States**: Visual feedback during API calls
+- **Form Validation**: Client-side validation with server-side verification
+- **Mobile Optimized**: Touch-friendly forms with responsive design
+
+#### **API Integration**
+- **Login Endpoint**: `POST /login` - Authenticates user and returns JWT
+- **Register Endpoint**: `POST /register` - Creates new user account
+- **Forgot Password**: `POST /forgot-password` - Sends password reset email
+- **Reset Password**: `POST /reset-password` - Updates password with token validation
+- **Token Verification**: `POST /verify-reset-token` - Validates reset tokens
+
+#### **Environment Configuration**
 **Authentication Environment Variables:**
 - `REACT_APP_API_URL`: Backend API base URL
 - `REACT_APP_AUTH_SERVICE_URL`: Auth service base URL
@@ -187,6 +218,14 @@ The frontend automatically detects and switches between local and cloud endpoint
 **Local Development:**
 - API URL: `http://localhost:8000/`
 - Auth URL: `http://localhost:9000/`
+
+#### **Security Features**
+- **JWT Token Security**: Secure token generation with expiration
+- **Password Validation**: Minimum length and complexity requirements
+- **Email Verification**: Password reset tokens sent via secure SMTP
+- **Token Expiration**: Reset tokens expire after configurable time period
+- **Rate Limiting**: Protection against brute force attacks
+- **Input Sanitization**: XSS protection and SQL injection prevention
 
 
 ## 🎨 Component Library & User Interface Design
@@ -718,13 +757,32 @@ This script:
 
 ## 🔐 Authentication Flow
 
-### User Journey
-1. **Landing**: User visits https://nilbx.com
-2. **Auth Required**: Protected routes redirect to `/auth`
-3. **Login/Register**: Choose role (athlete, sponsor, fan) and authenticate
-4. **Token Storage**: JWT stored in `localStorage` with expiration
-5. **API Access**: All requests include `Authorization: Bearer <token>`
-6. **Session Management**: Automatic token refresh and logout
+### Complete User Authentication Journey
+
+#### **New User Registration Flow**
+1. **Landing**: User visits https://nilbx.com and clicks "Get Started"
+2. **Auth Page**: Redirected to `/auth` with toggle between login/register
+3. **Registration**: User fills email, password, and selects role (athlete, sponsor, fan)
+4. **Account Creation**: Backend creates user account with encrypted password
+5. **Auto-Login**: User automatically logged in after successful registration
+6. **Dashboard Redirect**: User redirected to role-specific dashboard
+
+#### **Existing User Login Flow**
+1. **Auth Page**: User visits `/auth` and enters credentials
+2. **Authentication**: Backend validates email/password combination
+3. **JWT Token**: Server returns JWT token with user information and role
+4. **Token Storage**: JWT stored securely in `localStorage` with expiration
+5. **API Access**: All subsequent requests include `Authorization: Bearer <token>`
+6. **Session Management**: Automatic token refresh and logout on expiration
+
+#### **Password Reset Flow**
+1. **Forgot Password**: User clicks "Forgot your password?" on login form
+2. **Email Input**: User enters email address on `/forgot-password` page
+3. **Reset Email**: Backend sends secure password reset email via SMTP
+4. **Email Link**: User clicks link in email → `/reset-password?token=<secure-token>`
+5. **New Password**: User enters and confirms new password
+6. **Password Update**: Backend validates token and updates password
+7. **Login Redirect**: User redirected to login with success message
 
 ### Role-Based Access
 - **Athletes**: Profile management, deal creation, analytics
@@ -953,11 +1011,22 @@ curl -I https://nilbx.com
 **Core Infrastructure**:
 - ✅ Modern React 18 + Vite development environment
 - ✅ Comprehensive component library (12+ components)
+- ✅ Complete authentication system (login, register, password reset)
 - ✅ JWT authentication with role-based access
+- ✅ Email-based password reset with secure token validation
 - ✅ AWS cloud deployment (S3 + CloudFront)
 - ✅ Automated testing suite (180+ tests)
 - ✅ Mobile-first responsive design
 - ✅ WCAG 2.1 AA accessibility compliance
+
+**Authentication System**:
+- ✅ Login/Register forms with role selection
+- ✅ Password reset flow with email verification
+- ✅ JWT token management and automatic refresh
+- ✅ Secure token-based password reset
+- ✅ Input validation and error handling
+- ✅ Mobile-optimized authentication forms
+- ✅ Integration with backend auth service
 
 **Component Library**:
 - ✅ SocialShare - Multi-platform sharing with gamification

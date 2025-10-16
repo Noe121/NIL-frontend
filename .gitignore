@@ -21,6 +21,12 @@ node_modules/
 .env.*
 !.env.example
 
+# Authentication & Security Files
+jwt-secret.txt
+auth-config.json
+smtp-config.json
+reset-tokens.json
+
 # Infrastructure Outputs
 NILbx-env/outputs.json
 endpoints.json
@@ -28,11 +34,16 @@ endpoints.json
 # Secrets and Keys (Security Critical)
 AUTH_SECRET_KEY
 JWT_SECRET_KEY
+SMTP_PASSWORD
+EMAIL_PASSWORD
+RESET_TOKEN_SECRET
 API_KEY
 *secret*
 *private*
 *.pem
 *.key
+*token*
+*password*
 
 # Vite
 .vite/
