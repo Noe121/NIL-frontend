@@ -1,45 +1,171 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from './contexts/UserContext.jsx';
+import FormField from './components/FormField.jsx';
+import Button from './components/Button.jsx';
+import { validators } from './utils/validation.js';
 
 const API_URL = process.env.REACT_APP_AUTH_SERVICE_URL || 'http://localhost:9000/';
 
-export default function Auth({ onAuth }) {
+export default function Auth() {
   const [form, setForm] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const { login, loading } = useUser();
 
   const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
-    setError('');
+    
+    // Basic validation
+    const newErrors = {};
+    if (!validators.email(form.email).isValid) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    if (!form.password) {
+      newErrors.password = 'Password is required';
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     try {
-      const resp = await axios.post(`${API_URL}login`, new URLSearchParams({
-        username: form.email,
-        password: form.password,
-      }));
-      localStorage.setItem('jwt', resp.data.access_token);
-      onAuth && onAuth(resp.data.access_token);
+      const response = await fetch(`${API_URL}login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          username: form.email,
+          password: form.password,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Decode token to get user info
+        const payload = JSON.parse(atob(data.access_token.split('.')[1]));
+        const userData = {
+          id: payload.sub,
+          email: payload.email || form.email,
+          role: payload.role,
+          name: payload.name || payload.email?.split('@')[0]
+        };
+        
+        login(data.access_token, userData);
+        navigate('/dashboard');
+      } else {
+        const errorData = await response.json();
+        setErrors({ submit: errorData.detail || 'Login failed' });
+      }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Auth failed');
+      setErrors({ submit: 'Network error. Please try again.' });
     }
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: '2rem auto', padding: 20, border: '1px solid #ccc', borderRadius: 8 }}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} required style={{ width: '100%', marginBottom: 8 }} />
-        <input name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange} required style={{ width: '100%', marginBottom: 8 }} />
-        <button type="submit" style={{ width: '100%', marginBottom: 8 }}>Login</button>
-      </form>
-      <button onClick={() => navigate('/register')} style={{ width: '100%' }}>
-        Need an account? Register
-      </button>
-      {error && <div style={{ color: 'red', marginTop: 8 }}>{error}</div>}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
+          <p className="mt-2 text-gray-600">Sign in to your NIL account</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <FormField
+            type="email"
+            name="email"
+            label="Email Address"
+            placeholder="Enter your email"
+            value={form.email}
+            onChange={handleChange}
+            error={errors.email}
+            required
+            autoFocus
+            validate={validators.email}
+            icon="📧"
+          />
+          
+          <FormField
+            type="password"
+            name="password"
+            label="Password"
+            placeholder="Enter your password"
+            value={form.password}
+            onChange={handleChange}
+            error={errors.password}
+            required
+            icon="🔒"
+          />
+
+          {errors.submit && (
+            <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded" role="alert">
+              {errors.submit}
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            variant="primary"
+            size="large"
+            fullWidth
+            loading={loading}
+          >
+            {loading ? 'Signing In...' : 'Sign In'}
+          </Button>
+        </form>
+
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Don't have an account?</span>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            <Button
+              variant="outline"
+              size="large"
+              fullWidth
+              onClick={() => navigate('/register')}
+            >
+              Create Account
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="large"
+              fullWidth
+              onClick={() => navigate('/register/multi-step')}
+            >
+              Multi-Step Registration
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-6 text-center">
+          <button 
+            onClick={() => navigate('/')}
+            className="text-sm text-blue-600 hover:text-blue-800"
+          >
+            Back to Home
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

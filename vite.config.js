@@ -9,8 +9,8 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       input: {
-        main: './index.html',
-        app: './index-react.html'
+        main: './index.html', // React app as main entry
+        static: './index-static.html' // Static landing as alternative
       }
     }
   },

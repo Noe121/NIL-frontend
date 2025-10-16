@@ -4,7 +4,10 @@
   "description": "This project is structured for static content hosting (e.g., via S3) and can easily transition to a dynamic web application.",
   "main": "index.js",
   "scripts": {
-    "test": "node tests/test_landingpage_integration.js",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:legacy": "node tests/test_landingpage_integration.js",
     "dev": "vite",
     "build": "vite build"
   },
@@ -20,13 +23,19 @@
   },
   "homepage": "https://github.com/Noe121/NIL-frontend#readme",
   "dependencies": {
+    "axios": "^1.6.0",
+    "framer-motion": "^12.23.24",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "axios": "^1.6.0",
     "react-router-dom": "^6.23.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@vitejs/plugin-react": "^5.0.4",
-    "vite": "^7.1.9"
+    "jsdom": "^27.0.0",
+    "vite": "^7.1.9",
+    "vitest": "^3.2.4"
   }
 }
