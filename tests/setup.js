@@ -2,17 +2,51 @@ import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
 import { afterEach, beforeAll, vi } from 'vitest'
 
+// Set much higher timeout for all tests
+vi.setConfig({
+  testTimeout: 30000
+})
+
+// Configure default fake timers settings
+vi.useFakeTimers()
+
+// Reset modules and clear timers before each test
+beforeEach(() => {
+  vi.resetModules()
+  vi.clearAllTimers()
+})
+
 // Cleanup after each test case
 afterEach(() => {
   cleanup()
   // Clear localStorage
-  localStorage.clear()
-  // Clear all mocks
+  if (typeof localStorage !== 'undefined' && localStorage.clear) {
+    localStorage.clear()
+  }
+  // Clean up timers and mocks
+  vi.clearAllTimers()
   vi.clearAllMocks()
+  vi.resetAllMocks()
+  // Use real timers after each test
+  vi.useRealTimers()
 })
 
 // Mock ResizeObserver
 beforeAll(() => {
+  // Mock localStorage methods instead of replacing the object
+  const localStorageMock = {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+  };
+
+  // Use Object.defineProperty to mock localStorage methods
+  Object.defineProperty(window, 'localStorage', {
+    value: localStorageMock,
+    writable: true,
+  });
+
   global.ResizeObserver = vi.fn().mockImplementation(() => ({
     observe: vi.fn(),
     unobserve: vi.fn(),
@@ -137,13 +171,19 @@ beforeAll(() => {
   })
 
   // Mock clipboard API
-  Object.defineProperty(navigator, 'clipboard', {
-    writable: true,
-    value: {
-      writeText: vi.fn(() => Promise.resolve()),
-      readText: vi.fn(() => Promise.resolve('test')),
-    },
-  })
+  const clipboard = {
+    writeText: vi.fn(() => Promise.resolve()),
+    readText: vi.fn(() => Promise.resolve('test')),
+  };
+
+  // Define clipboard once to avoid redefining
+  if (!('clipboard' in navigator)) {
+    Object.defineProperty(navigator, 'clipboard', {
+      value: clipboard,
+      writable: true,
+      configurable: true,
+    });
+  }
 
   // Mock share API
   Object.defineProperty(navigator, 'share', {

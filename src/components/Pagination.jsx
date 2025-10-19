@@ -24,16 +24,31 @@ const Pagination = ({
 
   // Adjust settings for mobile
   const mobileMaxPages = isMobile ? 3 : isTablet ? 4 : maxVisiblePages;
-  const shouldShowFirstLast = !isMobile && showFirstLast;
-  const shouldShowPageInfo = !compact && showPageInfo;
+  const shouldShowFirstLast = (!isMobile || compact) && showFirstLast;
+  const shouldShowPageInfo = (!isMobile || !compact) && showPageInfo;
   const shouldShowJumpToPage = !isMobile && !compact && showJumpToPage;
+  
+  // Ensure current page stays within bounds
+  const normalizedCurrentPage = Math.max(1, Math.min(currentPage, totalPages));
 
   // Calculate visible page numbers
   const visiblePages = useMemo(() => {
     const pages = [];
     const halfWindow = Math.floor(mobileMaxPages / 2);
     
-    let startPage = Math.max(1, currentPage - halfWindow);
+    // Handle mobile view differently
+    if (isMobile && !compact) {
+      // Show current page and immediate neighbors
+      const start = Math.max(1, normalizedCurrentPage - 1);
+      const end = Math.min(totalPages, normalizedCurrentPage + 1);
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      return pages;
+    }
+
+    // Desktop view with more visible pages    
+    let startPage = Math.max(1, normalizedCurrentPage - halfWindow);
     let endPage = Math.min(totalPages, startPage + mobileMaxPages - 1);
     
     // Adjust start page if we're near the end
@@ -46,12 +61,38 @@ const Pagination = ({
     }
     
     return pages;
-  }, [currentPage, totalPages, mobileMaxPages]);
+  }, [normalizedCurrentPage, totalPages, mobileMaxPages, isMobile, compact]);
+
+    // Handle key navigation
+  const handleKeyDown = (event, page) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handlePageChange(page);
+    } else if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      handlePageChange(currentPage - 1);
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      handlePageChange(currentPage + 1);
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      handlePageChange(1); 
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      handlePageChange(totalPages);
+    }
+  };
 
   // Handle page change
   const handlePageChange = (page) => {
     if (disabled || page < 1 || page > totalPages || page === currentPage) return;
     onPageChange?.(page);
+  };
+
+  // Handle touch events for mobile
+  const handleTouchEnd = (event, targetPage) => {
+    event.preventDefault();
+    handlePageChange(targetPage);
   };
 
   // Jump to page functionality
@@ -74,56 +115,88 @@ const Pagination = ({
         variant={isActive ? 'primary' : 'ghost'}
         size={isMobile ? 'small' : size}
         onClick={() => handlePageChange(page)}
+        onKeyDown={(e) => handleKeyDown(e, page)}
         disabled={disabled}
         className={`
           min-w-[44px] min-h-[44px] 
           ${isMobile ? 'text-sm px-2' : ''}
           ${isActive ? 'pointer-events-none' : ''}
         `}
-        {...getAccessibilityProps({
-          ariaCurrent: isActive ? 'page' : undefined,
-          ariaLabel: `Go to page ${page}`
-        })}
+        aria-current={isActive ? 'page' : undefined}
+        aria-label={`Go to page ${page}`}
+        aria-selected={isActive}
+        role="link"
+        tabIndex={isActive || disabled ? -1 : 0}
+        onTouchEnd={(e) => isMobile && handleTouchEnd(e, page)}
         {...buttonProps}
-      >
-        {children || page}
-      </Button>
-    </motion.div>
-  );
-
+        >
+          {children || page}
+        </Button>
+      </motion.div>
+    );
+    
   // Navigation button component
-  const NavButton = ({ direction, children, targetPage, icon, ...buttonProps }) => (
-    <motion.div
-      whileHover={{ scale: disabled ? 1 : 1.05 }}
-      whileTap={{ scale: disabled ? 1 : 0.95 }}
-    >
-      <Button
-        variant="ghost"
-        size={isMobile ? 'small' : size}
-        onClick={() => handlePageChange(targetPage)}
-        disabled={disabled || targetPage < 1 || targetPage > totalPages}
-        className={`
-          min-w-[44px] min-h-[44px]
-          ${isMobile ? 'px-2' : ''}
-        `}
-        icon={icon}
-        {...getAccessibilityProps({
-          ariaLabel: `Go to ${direction} page`
-        })}
-        {...buttonProps}
+  const NavButton = ({ direction, children, targetPage, icon, ...buttonProps }) => {
+    const isDisabled = disabled || targetPage < 1 || targetPage > totalPages;
+    return (
+      <motion.div
+        whileHover={{ scale: disabled ? 1 : 1.05 }}
+        whileTap={{ scale: disabled ? 1 : 0.95 }}
       >
-        {!isMobile && children}
-      </Button>
-    </motion.div>
-  );
+        <Button
+          variant="ghost"
+          size={isMobile ? 'small' : size}
+          onClick={() => handlePageChange(targetPage)}
+          onKeyDown={(e) => handleKeyDown(e, targetPage)}
+          disabled={isDisabled}
+          className={`
+            min-w-[44px] min-h-[44px]
+            ${isMobile ? 'px-2' : ''}
+          `}
+          icon={icon}
+          aria-label={direction === 'previous' ? 'Previous page' : 'Next page'}
+          aria-disabled={isDisabled}
+          role="link"
+          tabIndex={isDisabled ? -1 : 0}
+          aria-controls="pagination-items"
+          onTouchEnd={(e) => isMobile && handleTouchEnd(e, targetPage)}
+          {...buttonProps}
+        >
+          {!isMobile && children}
+        </Button>
+      </motion.div>
+    );
+  };
 
-  // Return null if no pagination needed
-  if (totalPages <= 1) return null;
+  // Handle edge cases
+  if (totalPages < 1) {
+    // Return minimal navigation for zero pages
+    return (
+      <div className={`flex flex-col space-y-4 ${className}`}>
+        <div role="navigation" aria-label="Pagination Navigation">
+          <Button disabled aria-label="Previous page" aria-disabled="true">Previous</Button>
+          <Button disabled aria-label="Next page" aria-disabled="true">Next</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (totalPages === 1) {
+    // Return minimal navigation for single page
+    return (
+      <div className={`flex flex-col space-y-4 ${className}`}>
+        <div role="navigation" aria-label="Pagination Navigation">
+          <PageButton page={1} isActive={true} aria-current="page" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 
       className={`flex flex-col space-y-4 ${className}`}
-      {...getAccessibilityProps({ role: 'navigation', ariaLabel: 'Pagination' })}
+      role="navigation"
+      aria-label="Pagination Navigation"
       {...props}
     >
       {/* Page Info */}
@@ -132,6 +205,8 @@ const Pagination = ({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center text-sm text-gray-600"
+          role="status"
+          aria-live="polite"
         >
           Page {currentPage} of {totalPages}
         </motion.div>
@@ -149,7 +224,7 @@ const Pagination = ({
               {!isMobile && 'First'}
             </PageButton>
             {currentPage > 3 && (
-              <span className="px-2 text-gray-400">...</span>
+              <span className="px-2 text-gray-400" aria-label="More pages available">...</span>
             )}
           </>
         )}
@@ -191,7 +266,7 @@ const Pagination = ({
         {shouldShowFirstLast && currentPage < totalPages - 1 && (
           <>
             {currentPage < totalPages - 2 && (
-              <span className="px-2 text-gray-400">...</span>
+              <span className="px-2 text-gray-400" aria-label="More pages available">...</span>
             )}
             <PageButton page={totalPages} icon="⏭️">
               {!isMobile && 'Last'}
@@ -218,9 +293,8 @@ const Pagination = ({
             min="1"
             max={totalPages}
             className="w-16 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            {...getAccessibilityProps({
-              ariaLabel: `Jump to page, enter a number between 1 and ${totalPages}`
-            })}
+            aria-label={`Jump to page, enter a number between 1 and ${totalPages}`}
+            aria-controls="pagination-items"
           />
           <Button
             type="submit"
@@ -288,6 +362,8 @@ export const PaginationWithPageSize = ({
             value={pageSize}
             onChange={(e) => onPageSizeChange?.(parseInt(e.target.value, 10))}
             className="px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            aria-label="Select number of items per page"
+            aria-controls="pagination-items"
           >
             {pageSizeOptions.map(size => (
               <option key={size} value={size}>

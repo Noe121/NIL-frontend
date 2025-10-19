@@ -4,6 +4,7 @@ export const validators = {
   email: (value) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!value) return { isValid: false, error: 'Email is required' };
+    if (value.length > 254) return { isValid: false, error: 'Email address is too long' };
     if (!emailRegex.test(value)) return { isValid: false, error: 'Please enter a valid email address' };
     return { isValid: true };
   },

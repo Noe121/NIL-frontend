@@ -379,6 +379,37 @@ export const accessibilityRoles = {
   }
 };
 
+// Generate accessibility props
+export const getAccessibilityProps = (props) => {
+  const {
+    ariaLabel,
+    ariaDescribedBy,
+    ariaExpanded,
+    ariaHaspopup,
+    ariaSelected,
+    ariaControls,
+    ariaLive,
+    ariaModal,
+    role,
+    tabIndex,
+    ...rest
+  } = props;
+
+  return {
+    'aria-label': ariaLabel,
+    'aria-describedby': ariaDescribedBy,
+    'aria-expanded': ariaExpanded,
+    'aria-haspopup': ariaHaspopup,
+    'aria-selected': ariaSelected,
+    'aria-controls': ariaControls,
+    'aria-live': ariaLive,
+    'aria-modal': ariaModal,
+    role,
+    tabIndex,
+    ...rest
+  };
+};
+
 export default {
   useFocusManagement,
   useAutoFocus,
@@ -391,5 +422,6 @@ export default {
   respectsReducedMotion,
   generateFormIds,
   accessibilityRoles,
+  getAccessibilityProps,
   SkipNavigation
 };

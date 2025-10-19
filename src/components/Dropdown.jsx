@@ -33,15 +33,6 @@ const Dropdown = ({
     
     if (newState) {
       onOpen?.();
-      // Focus first focusable element when opened
-      setTimeout(() => {
-        const firstFocusable = contentRef.current?.querySelector(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        if (firstFocusable) {
-          focusElement(firstFocusable);
-        }
-      }, 100);
     } else {
       onClose?.();
       // Return focus to trigger
@@ -76,13 +67,13 @@ const Dropdown = ({
 
   // Keyboard navigation
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !contentRef.current) return;
 
     const handleKeyDown = (event) => {
-      const focusableElements = contentRef.current?.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      const focusableElements = contentRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"]), [role="menuitem"]'
       );
-      
+
       if (!focusableElements?.length) return;
 
       const currentIndex = Array.from(focusableElements).indexOf(document.activeElement);
@@ -103,22 +94,37 @@ const Dropdown = ({
           focusElement(focusableElements[prevIndex]);
           break;
         case 'Tab':
-          // Allow natural tab behavior
+          // Allow natural tab behavior within the dropdown
+          if (!contentRef.current.contains(event.target)) {
+            event.preventDefault();
+            focusElement(focusableElements[0]);
+          }
           break;
         default:
           break;
       }
     };
 
+    // Listen on document for keyboard events
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
-
-  // Touch gestures for mobile
+  }, [isOpen]);  // Touch gestures for mobile
   useTouchGestures(contentRef, {
     onSwipeUp: () => isMobile && handleClose(),
     threshold: 50
   });
+
+  // Focus first item when opened
+  useEffect(() => {
+    if (isOpen && contentRef.current) {
+      const firstFocusable = contentRef.current.querySelector(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"]), [role="menuitem"]'
+      );
+      if (firstFocusable) {
+        focusElement(firstFocusable);
+      }
+    }
+  }, [isOpen]);
 
   // Position classes
   const getPositionClasses = () => {
@@ -162,7 +168,7 @@ const Dropdown = ({
       scale: 0.95,
       y: isMobile && fullWidthOnMobile ? 20 : position.includes('top') ? 10 : -10,
       transition: {
-        duration: 0.15
+        duration: 0.05
       }
     }
   };
@@ -187,74 +193,68 @@ const Dropdown = ({
       className={`relative inline-block ${className}`}
       {...props}
     >
-      {/* Trigger */}
       <div
-        ref={triggerRef}
         onClick={handleToggle}
         className={`
           cursor-pointer select-none
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         `}
-        {...getAccessibilityProps({
-          role: 'button',
-          ariaExpanded: isOpen,
-          ariaHaspopup: true,
+      >
+        {React.isValidElement(trigger) ? React.cloneElement(trigger, {
+          'aria-haspopup': 'true',
+          'aria-expanded': isOpen,
           tabIndex: disabled ? -1 : 0,
           onKeyDown: (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
               handleToggle();
             }
-          }
-        })}
-      >
-        {trigger}
+          },
+          ref: triggerRef
+        }) : trigger}
       </div>
 
-      {/* Backdrop for mobile */}
       <AnimatePresence>
-        {isOpen && isMobile && fullWidthOnMobile && (
+        {isOpen && fullWidthOnMobile && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-25 z-40"
             onClick={handleClose}
+            data-testid="dropdown-backdrop"
           />
         )}
       </AnimatePresence>
 
-      {/* Dropdown Content */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            ref={contentRef}
-            variants={dropdownVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className={`
-              absolute z-50 bg-white rounded-lg shadow-lg border border-gray-200
-              ${getPositionClasses()}
-              ${isMobile && fullWidthOnMobile ? 'z-50' : 'z-40'}
-              ${contentClassName}
-            `}
-            style={{
-              maxHeight: isMobile && fullWidthOnMobile ? '60vh' : maxHeight,
-              minWidth: isMobile && fullWidthOnMobile ? 'auto' : '200px'
-            }}
-            onClick={handleChildClick}
-            {...getAccessibilityProps({
-              role: 'menu',
-              ariaOrientation: 'vertical'
-            })}
-          >
-            <div className="py-2 max-h-full overflow-y-auto">
-              {children}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {isOpen && (
+        <motion.div
+          ref={contentRef}
+          variants={dropdownVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className={`
+            absolute z-50 bg-white rounded-lg shadow-lg border border-gray-200
+            ${getPositionClasses()}
+            ${isMobile && fullWidthOnMobile ? 'z-50' : 'z-40'}
+            ${contentClassName}
+          `}
+          style={{
+            maxHeight: isMobile && fullWidthOnMobile ? '60vh' : maxHeight,
+            minWidth: isMobile && fullWidthOnMobile ? 'auto' : '200px'
+          }}
+          onClick={handleChildClick}
+          {...getAccessibilityProps({
+            role: 'menu',
+            'aria-orientation': 'vertical'
+          })}
+        >
+          <div className="py-2 max-h-full overflow-y-auto">
+            {children}
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };
@@ -276,7 +276,7 @@ export const DropdownItem = ({
   };
 
   return (
-    <div
+    <button
       data-dropdown-item
       onClick={handleClick}
       className={`
@@ -288,17 +288,17 @@ export const DropdownItem = ({
             : 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'
         }
         ${className}
+        ${destructive ? 'text-red-600' : ''}
       `}
-      {...getAccessibilityProps({
-        role: 'menuitem',
-        tabIndex: disabled ? -1 : 0,
-        onKeyDown: (e) => {
-          if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
-            e.preventDefault();
-            handleClick(e);
-          }
+      role="menuitem"
+      tabIndex={disabled ? -1 : 0}
+      data-destructive={destructive}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
+          e.preventDefault();
+          onClick?.(e);
         }
-      })}
+      }}
       {...props}
     >
       <div className="flex items-center space-x-3">
@@ -314,7 +314,7 @@ export const DropdownItem = ({
           )}
         </div>
       </div>
-    </div>
+    </button>
   );
 };
 

@@ -83,7 +83,9 @@ class ErrorBoundary extends Component {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      <SafeRouter>
+        <App />
+      </SafeRouter>
     </ErrorBoundary>
   </StrictMode>
 );

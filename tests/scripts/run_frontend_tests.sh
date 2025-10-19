@@ -36,7 +36,7 @@ echo "-----------------------------"
 
 # Run the basic frontend test
 echo "Running basic integration test..."
-node tests/test_frontend_basic.js
+node tests/integration/test_frontend_basic.js
 
 if [ $? -eq 0 ]; then
     echo ""

@@ -96,7 +96,11 @@ const NavigationBar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
+    <>
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-blue-600 text-white px-2 py-1 rounded z-50">
+        Skip to main content
+      </a>
+      <nav data-testid="navigation-bar" aria-label="Main navigation" className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -112,8 +116,8 @@ const NavigationBar = () => {
           </motion.div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-6">
-            {navigationItems.slice(0, 4).map((item, index) => (
+          <div data-testid="desktop-navigation" className="hidden lg:flex items-center space-x-6">
+            {navigationItems.slice(0, 5).map((item, index) => (
               <motion.div
                 key={item.path}
                 initial={{ opacity: 0, y: -10 }}
@@ -156,6 +160,7 @@ const NavigationBar = () => {
                   onClick={handleLogout}
                   className="text-gray-600 hover:text-red-600"
                   icon="🚪"
+                  aria-label="Desktop logout button"
                 >
                   Logout
                 </Button>
@@ -275,6 +280,7 @@ const NavigationBar = () => {
                 }}
                 icon="🚪"
                 className="text-red-600 border-red-300 hover:bg-red-50 min-h-[48px]"
+                aria-label="Mobile logout button"
               >
                 Logout
               </Button>
@@ -283,6 +289,7 @@ const NavigationBar = () => {
         </div>
       </MobileDrawer>
     </nav>
+    </>
   );
 };
 

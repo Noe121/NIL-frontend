@@ -1,453 +1,318 @@
-// Mobile responsiveness utilities and hooks
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 
-import { useState, useEffect } from 'react';
-
-// Breakpoint configuration (mobile-first approach)
-export const breakpoints = {
-  xs: 0,     // Extra small devices (phones, 0px and up)
-  sm: 640,   // Small devices (landscape phones, 640px and up)
-  md: 768,   // Medium devices (tablets, 768px and up)
-  lg: 1024,  // Large devices (desktops, 1024px and up)
-  xl: 1280,  // Extra large devices (large desktops, 1280px and up)
-  '2xl': 1536 // 2x Extra large devices (larger desktops, 1536px and up)
+/**
+ * Screen size breakpoints
+ */
+export const BREAKPOINTS = {
+  xs: 0,
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+  '2xl': 1536
 };
 
-// Media query hook
-export const useMediaQuery = (query) => {
-  const [matches, setMatches] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia(query).matches;
-    }
-    return false;
+/**
+ * Custom hook to get and track screen size
+ * @returns {Object} Current screen size information
+ */
+export const useScreenSize = () => {
+  const [screenSize, setScreenSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+    isMobile: false,
+    isTablet: false,
+    isDesktop: false,
+    breakpoint: 'desktop',
+    isPortrait: false,
+    isLandscape: false,
+    orientation: 'landscape'
   });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const mediaQuery = window.matchMedia(query);
-    
-    const handleChange = (e) => setMatches(e.matches);
-    
-    mediaQuery.addEventListener('change', handleChange);
-    
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [query]);
+    const handleResize = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const isMobile = width < BREAKPOINTS.md;
+      const isTablet = width >= BREAKPOINTS.md && width < BREAKPOINTS.lg;
+      const isDesktop = width >= BREAKPOINTS.lg;
+      
+      let breakpoint = 'desktop';
+      if (isMobile) breakpoint = 'mobile';
+      else if (isTablet) breakpoint = 'tablet';
+      
+      const isPortrait = height > width;
+      const isLandscape = width > height;
+      let orientation = 'square';
+      if (isPortrait) orientation = 'portrait';
+      else if (isLandscape) orientation = 'landscape';
 
-  return matches;
-};
-
-// Breakpoint hooks
-export const useBreakpoint = (breakpoint) => {
-  const query = `(min-width: ${breakpoints[breakpoint]}px)`;
-  return useMediaQuery(query);
-};
-
-export const useScreenSize = () => {
-  const isXs = useBreakpoint('xs');
-  const isSm = useBreakpoint('sm');
-  const isMd = useBreakpoint('md');
-  const isLg = useBreakpoint('lg');
-  const isXl = useBreakpoint('xl');
-  const is2xl = useBreakpoint('2xl');
-
-  const getCurrentBreakpoint = () => {
-    if (is2xl) return '2xl';
-    if (isXl) return 'xl';
-    if (isLg) return 'lg';
-    if (isMd) return 'md';
-    if (isSm) return 'sm';
-    return 'xs';
-  };
-
-  return {
-    isXs: !isSm,
-    isSm: isSm && !isMd,
-    isMd: isMd && !isLg,
-    isLg: isLg && !isXl,
-    isXl: isXl && !is2xl,
-    is2xl,
-    isMobile: !isMd,
-    isTablet: isMd && !isLg,
-    isDesktop: isLg,
-    currentBreakpoint: getCurrentBreakpoint()
-  };
-};
-
-// Touch detection
-export const useTouch = () => {
-  const [isTouch, setIsTouch] = useState(false);
-
-  useEffect(() => {
-    const checkTouch = () => {
-      setIsTouch(
-        'ontouchstart' in window ||
-        navigator.maxTouchPoints > 0 ||
-        navigator.msMaxTouchPoints > 0
-      );
-    };
-
-    checkTouch();
-    window.addEventListener('touchstart', checkTouch, { once: true });
-
-    return () => {
-      window.removeEventListener('touchstart', checkTouch);
-    };
-  }, []);
-
-  return isTouch;
-};
-
-// Device orientation hook
-export const useOrientation = () => {
-  const [orientation, setOrientation] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerHeight > window.innerWidth ? 'portrait' : 'landscape';
-    }
-    return 'portrait';
-  });
-
-  useEffect(() => {
-    const handleOrientationChange = () => {
-      setOrientation(window.innerHeight > window.innerWidth ? 'portrait' : 'landscape');
-    };
-
-    window.addEventListener('resize', handleOrientationChange);
-    window.addEventListener('orientationchange', handleOrientationChange);
-
-    return () => {
-      window.removeEventListener('resize', handleOrientationChange);
-      window.removeEventListener('orientationchange', handleOrientationChange);
-    };
-  }, []);
-
-  return orientation;
-};
-
-// Safe area insets for iOS devices
-export const useSafeArea = () => {
-  const [safeArea, setSafeArea] = useState({
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0
-  });
-
-  useEffect(() => {
-    const updateSafeArea = () => {
-      const style = getComputedStyle(document.documentElement);
-      setSafeArea({
-        top: parseInt(style.getPropertyValue('--safe-area-inset-top') || '0'),
-        right: parseInt(style.getPropertyValue('--safe-area-inset-right') || '0'),
-        bottom: parseInt(style.getPropertyValue('--safe-area-inset-bottom') || '0'),
-        left: parseInt(style.getPropertyValue('--safe-area-inset-left') || '0')
+      setScreenSize({
+        width,
+        height,
+        isMobile,
+        isTablet,
+        isDesktop,
+        breakpoint,
+        isPortrait,
+        isLandscape,
+        orientation
       });
     };
 
-    updateSafeArea();
-    window.addEventListener('resize', updateSafeArea);
-    window.addEventListener('orientationchange', updateSafeArea);
+    // Initial call
+    handleResize();
 
-    return () => {
-      window.removeEventListener('resize', updateSafeArea);
-      window.removeEventListener('orientationchange', updateSafeArea);
-    };
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  return safeArea;
+  return screenSize;
 };
 
-// Viewport height hook (handles mobile browser UI)
-export const useViewportHeight = () => {
-  const [viewportHeight, setViewportHeight] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerHeight;
+/**
+ * Helper function to check if the screen matches a breakpoint
+ * @param {string} breakpoint - The breakpoint to check against
+ * @returns {boolean} Whether the screen matches the breakpoint
+ */
+export const useBreakpoint = (breakpoint) => {
+  const { width } = useScreenSize();
+  return width >= BREAKPOINTS[breakpoint];
+};
+
+/**
+ * Helper function to get styles based on screen size
+ * @param {Object} styles - Styles object with breakpoint keys
+ * @returns {Object} The appropriate styles for the current screen size
+ */
+export const getResponsiveStyles = (styles) => {
+  const { width } = useScreenSize();
+  
+  const breakpointKeys = Object.keys(BREAKPOINTS)
+    .sort((a, b) => BREAKPOINTS[b] - BREAKPOINTS[a]);
+
+  for (const key of breakpointKeys) {
+    if (width >= BREAKPOINTS[key] && styles[key]) {
+      return styles[key];
     }
-    return 0;
-  });
+  }
 
-  useEffect(() => {
-    const updateHeight = () => {
-      setViewportHeight(window.innerHeight);
-    };
-
-    window.addEventListener('resize', updateHeight);
-    window.addEventListener('orientationchange', updateHeight);
-
-    return () => {
-      window.removeEventListener('resize', updateHeight);
-      window.removeEventListener('orientationchange', updateHeight);
-    };
-  }, []);
-
-  return viewportHeight;
+  return styles.base || {};
 };
 
-// Touch gesture utilities
+/**
+ * Custom hook for touch gestures
+ * @param {Object} ref - React ref to the element
+ * @param {Object} options - Options for gestures
+ */
 export const useTouchGestures = (ref, options = {}) => {
-  const {
-    onSwipeLeft,
-    onSwipeRight,
-    onSwipeUp,
-    onSwipeDown,
-    onTap,
-    onDoubleTap,
-    onLongPress,
-    threshold = 50,
-    longPressDelay = 500
-  } = options;
-
   useEffect(() => {
-    if (!ref.current) return;
+    const element = ref.current;
+    if (!element) return;
 
-    let startX, startY, startTime;
-    let longPressTimer;
-    let lastTap = 0;
+    let startX = 0;
+    let startY = 0;
+    let startTime = 0;
 
     const handleTouchStart = (e) => {
-      const touch = e.touches[0];
-      startX = touch.clientX;
-      startY = touch.clientY;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
       startTime = Date.now();
-
-      // Long press detection
-      if (onLongPress) {
-        longPressTimer = setTimeout(() => {
-          onLongPress(e);
-        }, longPressDelay);
-      }
     };
 
-    const handleTouchMove = () => {
-      // Cancel long press if finger moves
-      if (longPressTimer) {
-        clearTimeout(longPressTimer);
-        longPressTimer = null;
-      }
+    const handleTouchMove = (e) => {
+      // Prevent default to avoid scrolling during gesture
+      e.preventDefault();
     };
 
     const handleTouchEnd = (e) => {
-      if (longPressTimer) {
-        clearTimeout(longPressTimer);
-        longPressTimer = null;
+      if (!startX || !startY) return;
+
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const endTime = Date.now();
+      const diffX = startX - endX;
+      const diffY = startY - endY;
+      const duration = endTime - startTime;
+      const threshold = options.threshold || 50;
+
+      // Detect swipe gestures
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > threshold) {
+        if (diffX > 0 && options.onSwipeLeft) {
+          options.onSwipeLeft();
+        } else if (diffX < 0 && options.onSwipeRight) {
+          options.onSwipeRight();
+        }
+      } else if (Math.abs(diffY) > threshold) {
+        if (diffY > 0 && options.onSwipeUp) {
+          options.onSwipeUp();
+        } else if (diffY < 0 && options.onSwipeDown) {
+          options.onSwipeDown();
+        }
       }
 
-      const touch = e.changedTouches[0];
-      const endX = touch.clientX;
-      const endY = touch.clientY;
-      const deltaX = endX - startX;
-      const deltaY = endY - startY;
-      const deltaTime = Date.now() - startTime;
-
-      // Tap detection
-      if (Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10 && deltaTime < 300) {
-        const now = Date.now();
-        
-        if (now - lastTap < 300 && onDoubleTap) {
-          onDoubleTap(e);
-          lastTap = 0;
-        } else if (onTap) {
-          onTap(e);
-          lastTap = now;
-        }
-        return;
+      // Detect tap
+      if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10 && duration < 300 && options.onTap) {
+        options.onTap();
       }
 
-      // Swipe detection
-      if (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
-          // Horizontal swipe
-          if (deltaX > 0 && onSwipeRight) {
-            onSwipeRight(e);
-          } else if (deltaX < 0 && onSwipeLeft) {
-            onSwipeLeft(e);
-          }
-        } else {
-          // Vertical swipe
-          if (deltaY > 0 && onSwipeDown) {
-            onSwipeDown(e);
-          } else if (deltaY < 0 && onSwipeUp) {
-            onSwipeUp(e);
-          }
-        }
+      // Detect long press
+      if (Math.abs(diffX) < 10 && Math.abs(diffY) < 10 && duration > (options.longPressDelay || 500) && options.onLongPress) {
+        options.onLongPress();
       }
     };
 
-    const element = ref.current;
-    element.addEventListener('touchstart', handleTouchStart, { passive: true });
-    element.addEventListener('touchmove', handleTouchMove, { passive: true });
-    element.addEventListener('touchend', handleTouchEnd, { passive: true });
+    element.addEventListener('touchstart', handleTouchStart);
+    element.addEventListener('touchmove', handleTouchMove);
+    element.addEventListener('touchend', handleTouchEnd);
 
     return () => {
       element.removeEventListener('touchstart', handleTouchStart);
       element.removeEventListener('touchmove', handleTouchMove);
       element.removeEventListener('touchend', handleTouchEnd);
-      if (longPressTimer) {
-        clearTimeout(longPressTimer);
+    };
+  }, [ref, options]);
+};
+
+/**
+ * Mobile drawer component
+ * @param {Object} props - Component props
+ */
+export const MobileDrawer = ({ 
+  children, 
+  isOpen, 
+  onClose, 
+  position = 'left', 
+  className = '',
+  backdropClassName = '' 
+}) => {
+  const drawerRef = useRef(null);
+  const previousFocusRef = useRef(null);
+
+  // Handle body scroll prevention
+  useLayoutEffect(() => {
+    if (isOpen) {
+      document.body.className += ' overflow-hidden';
+      // Store the currently focused element
+      previousFocusRef.current = document.activeElement;
+    } else {
+      document.body.className = document.body.className.replace(' overflow-hidden', '');
+      // Restore focus
+      if (previousFocusRef.current && previousFocusRef.current.focus) {
+        previousFocusRef.current.focus();
+      }
+    }
+
+    return () => {
+      document.body.className = document.body.className.replace(' overflow-hidden', '');
+    };
+  }, [isOpen]);
+
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
       }
     };
-  }, [ref, onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, onTap, onDoubleTap, onLongPress, threshold, longPressDelay]);
-};
 
-// Responsive classes helper
-export const responsiveClasses = (classes) => {
-  if (typeof classes === 'string') return classes;
-  
-  const breakpointOrder = ['xs', 'sm', 'md', 'lg', 'xl', '2xl'];
-  
-  return breakpointOrder
-    .filter(bp => classes[bp])
-    .map(bp => bp === 'xs' ? classes[bp] : `${bp}:${classes[bp]}`)
-    .join(' ');
-};
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+    }
 
-// Touch-friendly button component
-export const TouchButton = ({ 
-  children, 
-  className = '', 
-  size = 'medium',
-  ...props 
-}) => {
-  const { isMobile } = useScreenSize();
-  
-  const sizes = {
-    small: isMobile ? 'min-h-[44px] px-4 py-2' : 'px-3 py-1.5',
-    medium: isMobile ? 'min-h-[48px] px-6 py-3' : 'px-4 py-2',
-    large: isMobile ? 'min-h-[52px] px-8 py-4' : 'px-6 py-3'
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, onClose]);
+
+  // Focus trapping
+  useEffect(() => {
+    if (!isOpen || !drawerRef.current) return;
+
+    const focusableElements = drawerRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    const handleTabKey = (e) => {
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            lastElement.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            firstElement.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleTabKey);
+
+    // Focus first element when drawer opens
+    if (firstElement) {
+      firstElement.focus();
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleTabKey);
+    };
+  }, [isOpen]);
+
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
   };
 
-  return (
-    <button
-      className={`
-        ${sizes[size]}
-        touch-manipulation
-        ${className}
-      `}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-};
-
-// Responsive container component
-export const ResponsiveContainer = ({ 
-  children, 
-  className = '',
-  maxWidth = 'lg',
-  padding = true
-}) => {
-  const maxWidths = {
-    sm: 'max-w-screen-sm',
-    md: 'max-w-screen-md',
-    lg: 'max-w-screen-lg',
-    xl: 'max-w-screen-xl',
-    '2xl': 'max-w-screen-2xl',
-    full: 'max-w-full'
+  const positionClasses = {
+    left: 'left-0 top-0 h-full w-80 transform -translate-x-full',
+    right: 'right-0 top-0 h-full w-80 transform translate-x-full',
+    top: 'top-0 left-0 w-full h-80 transform -translate-y-full',
+    bottom: 'bottom-0 left-0 w-full h-80 transform translate-y-full'
   };
 
-  const paddingClasses = padding ? 'px-4 sm:px-6 lg:px-8' : '';
-
-  return (
-    <div className={`
-      mx-auto w-full
-      ${maxWidths[maxWidth]}
-      ${paddingClasses}
-      ${className}
-    `}>
-      {children}
-    </div>
-  );
-};
-
-// Mobile-first grid component
-export const ResponsiveGrid = ({
-  children,
-  cols = { xs: 1, sm: 2, md: 3, lg: 4 },
-  gap = 4,
-  className = ''
-}) => {
-  const gridCols = Object.entries(cols)
-    .map(([bp, count]) => 
-      bp === 'xs' 
-        ? `grid-cols-${count}` 
-        : `${bp}:grid-cols-${count}`
-    )
-    .join(' ');
-
-  return (
-    <div className={`
-      grid gap-${gap}
-      ${gridCols}
-      ${className}
-    `}>
-      {children}
-    </div>
-  );
-};
-
-// Mobile navigation drawer
-export const MobileDrawer = ({
-  isOpen,
-  onClose,
-  children,
-  position = 'left',
-  className = ''
-}) => {
-  const { isMobile } = useScreenSize();
-  
-  if (!isMobile) return null;
-
-  const positions = {
-    left: 'left-0 top-0 h-full',
-    right: 'right-0 top-0 h-full',
-    top: 'top-0 left-0 w-full',
-    bottom: 'bottom-0 left-0 w-full'
+  const openClasses = {
+    left: 'translate-x-0',
+    right: 'translate-x-0',
+    top: 'translate-y-0',
+    bottom: 'translate-y-0'
   };
 
-  const transforms = {
-    left: isOpen ? 'translate-x-0' : '-translate-x-full',
-    right: isOpen ? 'translate-x-0' : 'translate-x-full',
-    top: isOpen ? 'translate-y-0' : '-translate-y-full',
-    bottom: isOpen ? 'translate-y-0' : 'translate-y-full'
-  };
+  if (!isOpen) return null;
 
   return (
     <>
       {/* Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={onClose}
-        />
-      )}
+      <div
+        data-testid="mobile-drawer-backdrop"
+        className={`fixed inset-0 bg-black bg-opacity-50 z-40 ${backdropClassName}`}
+        onClick={handleBackdropClick}
+        aria-hidden="true"
+      />
       
       {/* Drawer */}
-      <div className={`
-        fixed ${positions[position]} 
-        bg-white shadow-lg z-50
-        transform ${transforms[position]}
-        transition-transform duration-300 ease-in-out
-        ${className}
-      `}>
-        {children}
+      <div
+        ref={drawerRef}
+        data-testid="mobile-drawer"
+        className={`fixed z-50 bg-white shadow-lg transition-transform duration-300 ease-in-out ${positionClasses[position]} ${isOpen ? openClasses[position] : ''} ${className}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="drawer-title"
+      >
+        <div className="p-4">
+          {children}
+        </div>
       </div>
     </>
   );
-};
-
-export default {
-  breakpoints,
-  useMediaQuery,
-  useBreakpoint,
-  useScreenSize,
-  useTouch,
-  useOrientation,
-  useSafeArea,
-  useViewportHeight,
-  useTouchGestures,
-  responsiveClasses,
-  TouchButton,
-  ResponsiveContainer,
-  ResponsiveGrid,
-  MobileDrawer
 };

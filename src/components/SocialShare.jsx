@@ -105,7 +105,8 @@ const SocialShare = ({
 
     try {
       // Check if Web Share API is available (mobile)
-      if (navigator.share && isMobile && platformKey === 'native') {
+      if (navigator.share && isMobile) {
+        // Use native share when available on mobile
         await navigator.share({
           title,
           text: description,
@@ -179,7 +180,7 @@ const SocialShare = ({
           size={size}
           icon="📤"
           className="text-gray-600 hover:text-blue-600"
-          {...getAccessibilityProps({ ariaLabel: 'Share' })}
+          {...getAccessibilityProps({ 'aria-label': 'Share' })}
         >
           {!isMobile && 'Share'}
         </Button>
@@ -222,7 +223,7 @@ const SocialShare = ({
               transition-all duration-200 hover:shadow-lg
               ${platform.color}
             `}
-            {...getAccessibilityProps({ ariaLabel: `Share on ${platform.name}` })}
+            {...getAccessibilityProps({ 'aria-label': `Share on ${platform.name}` })}
           >
             {platform.icon}
           </motion.button>
@@ -236,7 +237,7 @@ const SocialShare = ({
             whileTap={{ scale: 0.9 }}
             onClick={() => copyToClipboard()}
             className="w-10 h-10 rounded-full bg-gray-600 text-white text-lg flex items-center justify-center transition-all duration-200 hover:shadow-lg"
-            {...getAccessibilityProps({ ariaLabel: 'Copy link' })}
+            {...getAccessibilityProps({ 'aria-label': 'Copy link' })}
           >
             {copied ? '✅' : '🔗'}
           </motion.button>
@@ -268,7 +269,7 @@ const SocialShare = ({
               flex items-center justify-center space-x-2
               ${platform.color}
             `}
-            {...getAccessibilityProps({ ariaLabel: `Share on ${platform.name}` })}
+            {...getAccessibilityProps({ 'aria-label': `Share on ${platform.name}` })}
           >
             <span className="text-lg">{platform.icon}</span>
             <span className="hidden sm:inline">{platform.name}</span>

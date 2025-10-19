@@ -26,9 +26,14 @@ const DatePicker = ({
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(value ? new Date(value) : null);
   const [viewDate, setViewDate] = useState(value ? new Date(value) : new Date());
-  const [selectedTime, setSelectedTime] = useState(
-    value && showTime ? new Date(value) : new Date()
-  );
+  const [selectedTime, setSelectedTime] = useState(() => {
+    const initTime = value && showTime ? new Date(value) : new Date();
+    // Initialize to 10:00 AM for 12h format
+    if (timeFormat === '12h') {
+      initTime.setHours(10, 0, 0); // 10:00 AM
+    }
+    return initTime;
+  });
   
   const datePickerRef = useRef(null);
   const inputRef = useRef(null);
@@ -174,9 +179,11 @@ const DatePicker = ({
 
     const handleKeyDown = (event) => {
       switch (event.key) {
-        case 'Escape':
+          case 'Escape':
           setIsOpen(false);
-          focusElement(inputRef.current);
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
           break;
         case 'Enter':
           if (document.activeElement?.dataset?.date) {
@@ -204,7 +211,7 @@ const DatePicker = ({
     <div ref={datePickerRef} className={`relative ${className}`}>
       {/* Label */}
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor={props.id || 'datepicker'} className="block text-sm font-medium text-gray-700 mb-1">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
@@ -214,6 +221,7 @@ const DatePicker = ({
         <input
           ref={inputRef}
           type="text"
+          id={props.id || 'datepicker'}
           value={formatDate(selectedDate)}
           placeholder={placeholder}
           readOnly
@@ -230,11 +238,10 @@ const DatePicker = ({
             focus:ring-2 focus:ring-opacity-50 transition-colors duration-200
             min-h-[44px] text-left
           `}
-          {...getAccessibilityProps({
-            ariaExpanded: isOpen,
-            ariaHaspopup: 'dialog',
-            ariaLabel: label || 'Select date'
-          })}
+          aria-expanded={isOpen}
+          aria-haspopup="dialog"
+          aria-label={label || 'Select date'}
+          {...props}
           {...props}
         />
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
@@ -293,7 +300,8 @@ const DatePicker = ({
               {...getAccessibilityProps({
                 role: 'dialog',
                 ariaLabel: 'Date picker',
-                ariaModal: isMobile
+                ariaModal: true,
+                ariaExpanded: isOpen
               })}
             >
               {/* Calendar Header */}

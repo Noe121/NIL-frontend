@@ -32,18 +32,21 @@ const FormField = ({
 
   // Real-time validation
   useEffect(() => {
-    if (value && validate) {
+    if (validate) {
       const validationResult = validate(value);
       setIsValid(validationResult.isValid);
       setLocalError(validationResult.error || '');
     } else if (value) {
       setIsValid(true);
       setLocalError('');
+    } else if (required) {
+      setIsValid(false);
+      setLocalError(`${label || 'Field'} is required`);
     } else {
       setIsValid(null);
       setLocalError('');
     }
-  }, [value, validate]);
+  }, [value, validate, required, label]);
 
   const handleFocus = () => {
     setIsFocused(true);
@@ -102,6 +105,7 @@ const FormField = ({
           aria-describedby={
             displayError ? `${name}-error` : hint ? `${name}-hint` : undefined
           }
+          required={required}
           {...props}
         />
 

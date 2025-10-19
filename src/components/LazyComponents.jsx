@@ -1,5 +1,5 @@
 // Lazy-loaded components for better performance
-import { createLazyRoute } from '../utils/performance.jsx';
+import { createLazyRoute } from '../utils/performance.js';
 
 // Lazy load dashboard components
 export const LazyAthleteDashboard = createLazyRoute(

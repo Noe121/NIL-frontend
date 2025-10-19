@@ -10,18 +10,37 @@ import {
   useKeyboardNavigation,
   useFocusTrap,
   useAriaLiveRegion
-} from '../src/utils/accessibility.js';
+} from '../../src/utils/accessibility.js';
 
-// Mock DOM APIs
-const mockElement = {
+// Mock DOM APIs and setup
+const createMockElement = () => ({
   focus: vi.fn(),
   getAttribute: vi.fn(),
   setAttribute: vi.fn(),
   addEventListener: vi.fn(),
   removeEventListener: vi.fn(),
   querySelectorAll: vi.fn(() => []),
-  contains: vi.fn(() => false)
-};
+  contains: vi.fn(() => false),
+  blur: vi.fn(),
+  click: vi.fn(),
+  scrollIntoView: vi.fn(),
+  style: {},
+  classList: {
+    add: vi.fn(),
+    remove: vi.fn(),
+    contains: vi.fn()
+  },
+  dataset: {}
+});
+
+let mockElement;
+
+beforeEach(() => {
+  mockElement = createMockElement();
+  vi.clearAllMocks();
+  // Clean up any ARIA live regions from previous tests
+  document.querySelectorAll('[aria-live]').forEach(el => el.remove());
+});
 
 describe('getAccessibilityProps', () => {
   it('returns ARIA attributes correctly', () => {
@@ -346,6 +365,27 @@ describe('useFocusTrap Hook', () => {
 });
 
 describe('useAriaLiveRegion Hook', () => {
+  let originalMutationObserver;
+  let mockDisconnect;
+  let mockObserve;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    mockDisconnect = vi.fn();
+    mockObserve = vi.fn();
+    originalMutationObserver = global.MutationObserver;
+    global.MutationObserver = vi.fn(() => ({
+      disconnect: mockDisconnect,
+      observe: mockObserve
+    }));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    document.querySelectorAll('[aria-live]').forEach(el => el.remove());
+    global.MutationObserver = originalMutationObserver;
+  });
+
   it('creates live region on mount', () => {
     renderHook(() => useAriaLiveRegion());
     
@@ -355,7 +395,6 @@ describe('useAriaLiveRegion Hook', () => {
 
   it('returns announce function', () => {
     const { result } = renderHook(() => useAriaLiveRegion());
-    
     expect(typeof result.current.announce).toBe('function');
   });
 
@@ -379,9 +418,57 @@ describe('useAriaLiveRegion Hook', () => {
     const { unmount } = renderHook(() => useAriaLiveRegion());
     
     expect(document.querySelector('[aria-live="polite"]')).toBeInTheDocument();
+    unmount();
+    expect(document.querySelector('[aria-live="polite"]')).not.toBeInTheDocument();
+  });
+
+  it('queues multiple announcements', async () => {
+    const { result } = renderHook(() => useAriaLiveRegion());
     
+    result.current.announce('First message', 1000);
+    result.current.announce('Second message', 1000);
+    
+    const liveRegion = document.querySelector('[aria-live="polite"]');
+    expect(liveRegion.textContent).toBe('First message');
+    
+    // Advance timer to trigger the first message cleanup
+    vi.advanceTimersByTime(1000);
+    
+    // Second message should now be displayed
+    expect(liveRegion.textContent).toBe('Second message');
+    
+    // Advance timer to clear second message
+    vi.advanceTimersByTime(1000);
+    expect(liveRegion.textContent).toBe('');
+  });
+
+  it('ignores invalid announcements', () => {
+    const { result } = renderHook(() => useAriaLiveRegion());
+    const liveRegion = document.querySelector('[aria-live="polite"]');
+    
+    // Test with null
+    result.current.announce(null);
+    expect(liveRegion.textContent).toBe('');
+    
+    // Test with undefined
+    result.current.announce(undefined);
+    expect(liveRegion.textContent).toBe('');
+    
+    // Test with non-string value
+    result.current.announce({});
+    expect(liveRegion.textContent).toBe('');
+  });
+
+  it('handles unmounting during active announcement', () => {
+    const { result, unmount } = renderHook(() => useAriaLiveRegion());
+    
+    result.current.announce('Test message', 1000);
     unmount();
     
+    // Should not throw errors when advancing timers after unmount
+    vi.advanceTimersByTime(1000);
+    
+    // Live region should be removed
     expect(document.querySelector('[aria-live="polite"]')).not.toBeInTheDocument();
   });
 });
@@ -393,8 +480,11 @@ describe('WCAG Compliance', () => {
       minTouchTarget: true
     });
 
-    // Would include classes or styles for 44px minimum
     expect(props.role).toBe('button');
+    expect(props.style).toEqual(expect.objectContaining({
+      minWidth: '44px',
+      minHeight: '44px'
+    }));
   });
 
   it('supports skip links', () => {
@@ -404,6 +494,11 @@ describe('WCAG Compliance', () => {
     });
 
     expect(props.role).toBe('link');
+    expect(props.className).toContain('skip-link');
+    expect(props.style).toEqual(expect.objectContaining({
+      position: 'absolute',
+      transform: 'translateY(-100%)'
+    }));
   });
 
   it('provides color contrast utilities', () => {
@@ -411,8 +506,8 @@ describe('WCAG Compliance', () => {
       highContrast: true
     });
 
-    // Would include high contrast styling
-    expect(props).toBeDefined();
+    expect(props.className).toContain('high-contrast');
+    expect(props['data-high-contrast']).toBe(true);
   });
 
   it('supports reduced motion preferences', () => {
@@ -420,8 +515,37 @@ describe('WCAG Compliance', () => {
       respectReducedMotion: true
     });
 
-    // Would respect prefers-reduced-motion
-    expect(props).toBeDefined();
+    expect(props['data-reduced-motion']).toBe(true);
+    expect(props.className).toContain('respect-motion-preferences');
+  });
+
+  it('handles focus visibility appropriately', () => {
+    const props = getAccessibilityProps({
+      role: 'button',
+      focusVisible: true
+    });
+
+    expect(props.className).toContain('focus-visible');
+    expect(props.style).toEqual(expect.objectContaining({
+      outlineWidth: '2px',
+      outlineStyle: 'solid'
+    }));
+  });
+
+  it('supports multiple ARIA roles when appropriate', () => {
+    const props = getAccessibilityProps({
+      role: 'group tablist'
+    });
+
+    expect(props.role).toBe('group tablist');
+  });
+
+  it('throws error for invalid role combinations', () => {
+    expect(() => {
+      getAccessibilityProps({
+        role: 'button link' // Invalid combination
+      });
+    }).toThrow('Invalid role combination');
   });
 });
 
@@ -429,30 +553,104 @@ describe('Screen Reader Support', () => {
   it('provides semantic markup helpers', () => {
     const props = getAccessibilityProps({
       role: 'region',
-      ariaLabel: 'Main content'
+      ariaLabel: 'Main content',
+      ariaLive: 'polite'
     });
 
     expect(props.role).toBe('region');
     expect(props['aria-label']).toBe('Main content');
+    expect(props['aria-live']).toBe('polite');
   });
 
-  it('supports landmark roles', () => {
-    const props = getAccessibilityProps({
+  it('supports landmark roles with proper nesting', () => {
+    const mainProps = getAccessibilityProps({
       role: 'main'
     });
 
-    expect(props.role).toBe('main');
-  });
-
-  it('provides form accessibility helpers', () => {
-    const props = getAccessibilityProps({
-      ariaRequired: true,
-      ariaInvalid: true,
-      ariaDescribedby: 'error-message'
+    const navProps = getAccessibilityProps({
+      role: 'navigation',
+      ariaLabelledby: 'nav-heading'
     });
 
+    const articleProps = getAccessibilityProps({
+      role: 'article',
+      ariaLabel: 'Featured content'
+    });
+
+    expect(mainProps.role).toBe('main');
+    expect(navProps.role).toBe('navigation');
+    expect(navProps['aria-labelledby']).toBe('nav-heading');
+    expect(articleProps.role).toBe('article');
+    expect(articleProps['aria-label']).toBe('Featured content');
+  });
+
+  it('provides comprehensive form accessibility helpers', () => {
+    const props = getAccessibilityProps({
+      role: 'form',
+      ariaRequired: true,
+      ariaInvalid: true,
+      ariaDescribedby: 'error-message',
+      ariaErrormessage: 'validation-error',
+      ariaLabelledby: 'form-title',
+      ariaOwns: 'field-group',
+      ariaControls: 'submission-status'
+    });
+
+    expect(props.role).toBe('form');
     expect(props['aria-required']).toBe(true);
     expect(props['aria-invalid']).toBe(true);
     expect(props['aria-describedby']).toBe('error-message');
+    expect(props['aria-errormessage']).toBe('validation-error');
+    expect(props['aria-labelledby']).toBe('form-title');
+    expect(props['aria-owns']).toBe('field-group');
+    expect(props['aria-controls']).toBe('submission-status');
+  });
+
+  it('handles dynamic ARIA attributes', () => {
+    const props = getAccessibilityProps({
+      role: 'status',
+      ariaAtomic: true,
+      ariaBusy: true,
+      ariaRelevant: 'additions text'
+    });
+
+    expect(props.role).toBe('status');
+    expect(props['aria-atomic']).toBe(true);
+    expect(props['aria-busy']).toBe(true);
+    expect(props['aria-relevant']).toBe('additions text');
+  });
+
+  it('supports dialog role with proper attributes', () => {
+    const props = getAccessibilityProps({
+      role: 'dialog',
+      ariaModal: true,
+      ariaLabel: 'Settings',
+      ariaDescribedby: 'dialog-desc'
+    });
+
+    expect(props.role).toBe('dialog');
+    expect(props['aria-modal']).toBe(true);
+    expect(props['aria-label']).toBe('Settings');
+    expect(props['aria-describedby']).toBe('dialog-desc');
+  });
+
+  it('validates required ARIA attributes', () => {
+    expect(() => {
+      getAccessibilityProps({
+        role: 'combobox',
+        // Missing required aria-expanded
+      });
+    }).toThrow('Missing required ARIA attributes for combobox role');
+  });
+
+  it('handles ARIA attribute precedence correctly', () => {
+    const props = getAccessibilityProps({
+      ariaLabel: 'Visible label',
+      ariaLabelledby: 'label-id',
+      // aria-labelledby should take precedence over aria-label
+    });
+
+    expect(props['aria-labelledby']).toBe('label-id');
+    expect(props['aria-label']).toBeUndefined();
   });
 });

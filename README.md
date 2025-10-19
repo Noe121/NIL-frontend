@@ -1,31 +1,37 @@
 
 # NILbx Frontend 🏆
 
-A modern React/Vite frontend for the NILbx platform - connecting athletes, sponsors, and fans through Name, Image, and Likeness (NIL) deals. Features JWT authentication, real-time API integration, and cloud deployment on AWS.
+A modern React/Vite frontend for the NILbx platform - connecting athletes, sponsors, and fans through Name, Image, and Likeness (NIL) deals. Features secure JWT authentication, dual-mode operation (standalone/centralized), blockchain integration, and cloud deployment on AWS.
 
 **Live Demo**: [https://nilbx.com](https://nilbx.com) ✅
 
 This frontend integrates with microservices backend APIs and is hosted statically on S3 via CloudFront for global performance.
 
-## ✨ Features
-- **Modern React SPA**: Built with React 18 and Vite for fast development
-- **Responsive Design**: Optimized for desktop, tablet, and mobile
-- **Complete Authentication System**: Login, register, and password reset with email verification
-- **Landing Page**: Engaging interface for athletes, sponsors, and fans
-- **Early Access Form**: Integrated with Formspree for lead capture
-- **API Integration**: Real-time connection to backend microservices
-- **JWT Authentication**: Secure login/register with role-based access
-- **Password Reset Flow**: Email-based password reset with secure token validation
-- **Cloud Ready**: Deployed on AWS S3 + CloudFront for global performance
-- **Dual Build System**: Static landing page + React SPA in one bundle (267KB)
+## ✨ Core Features
 
-### 🎯 **Enhanced User Experience**
-- **Component Library**: Comprehensive set of modern React components
-- **Role-Based UI**: Customized interfaces for athletes, sponsors, and fans
-- **Interactive Elements**: File uploads, social sharing, tooltips, and pagination
-- **Accessibility First**: WCAG 2.1 compliant with full keyboard navigation
-- **Mobile Optimized**: Touch-friendly interactions and responsive design
-- **Performance Focused**: Lazy loading, code splitting, and optimized bundle size
+### 🔐 Authentication
+- **Secure Authentication**: Industry-standard JWT with bcrypt password hashing
+- **Smart Password Handling**: Automatic password truncation for bcrypt's 72-byte limit
+- **Complete Reset Flow**: Email-based password reset with secure token validation
+- **Role-Based Access**: Athlete, sponsor, and fan role management
+
+### 🌐 Dual-Mode Operation
+- **Standalone Mode**: Local development with independent services
+- **Centralized Mode**: AWS infrastructure integration with shared services
+- **Dynamic Configuration**: Automatic environment detection and setup
+- **Feature Flags**: Mode-specific feature enablement
+
+### ⛓️ Blockchain Integration
+- **Web3 Wallet Support**: MetaMask and WalletConnect integration
+- **NFT Management**: Token minting, transfer, and validation
+- **Smart Contracts**: Sponsorship contract interactions
+- **Ethereum Networks**: Support for mainnet and test networks
+
+### � Modern User Interface
+- **Component Library**: 12+ production-ready React components
+- **Role-Based UI**: Custom interfaces for athletes, sponsors, and fans
+- **Mobile First**: Touch-optimized responsive design
+- **Accessibility**: WCAG 2.1 AA compliance
 
 ## 🚀 Getting Started
 
@@ -34,96 +40,71 @@ This frontend integrates with microservices backend APIs and is hosted staticall
 - Docker Desktop (for local backend services)
 - AWS CLI configured (for cloud deployment)
 
-### Local Development
+### Quick Start
 
-1. **Install dependencies:**
+1. **Clone and Install**
    ```bash
-   npm install
+   git clone https://github.com/Noe121/NIL-env.git
+   cd frontend
+   npm install --legacy-peer-deps
    ```
 
-2. **Start development server:**
+2. **Choose Development Mode**
+   
+   Standalone Mode:
+   ```bash
+   npm run dev:standalone
+   ```
+   
+   Centralized Mode:
    ```bash
    npm run dev
    ```
-   The app runs at http://localhost:5173
 
-3. **Build for production:**
-   ```bash
-   npm run build
-   ```
-   Output is in `dist/` folder ready for S3 deployment
+3. **Access the Application**
+   - Standalone: http://localhost:5173
+   - Centralized: http://localhost:3000
 
 ### Environment Configuration
 
-Create a `.env` file for local development:
+Create appropriate .env file:
+
+**Standalone Mode** (.env.standalone):
 ```bash
-REACT_APP_API_URL=http://localhost:8000/
-REACT_APP_AUTH_SERVICE_URL=http://localhost:9000/
+VITE_API_URL=http://localhost:8000
+VITE_AUTH_SERVICE_URL=http://localhost:9000
+VITE_BLOCKCHAIN_ENABLED=false
+VITE_MODE=standalone
 ```
 
-For cloud deployment:
+**Centralized Mode** (.env):
 ```bash
-REACT_APP_API_URL=https://dev-nilbx-alb-961031935.us-east-1.elb.amazonaws.com/
-REACT_APP_AUTH_SERVICE_URL=https://<auth-service-endpoint>/
+VITE_API_URL=https://dev-nilbx-alb-961031935.us-east-1.elb.amazonaws.com
+VITE_AUTH_SERVICE_URL=https://<auth-service-endpoint>
+VITE_BLOCKCHAIN_ENABLED=true
+VITE_MODE=centralized
+VITE_WEB3_PROVIDER_URL=<ethereum-rpc-url>
+VITE_NFT_CONTRACT_ADDRESS=<contract-address>
 ```
 
-## 📁 Project Structure
-```
+## 🏗️ Project Structure
+
+```plaintext
 frontend/
 ├── src/
-│   ├── components/           # Reusable React components
-│   │   ├── SocialShare.jsx   # Social media sharing component
-│   │   ├── Tooltip.jsx       # Contextual help tooltips
-│   │   ├── FileUpload.jsx    # File upload with drag & drop
-│   │   ├── Pagination.jsx    # Data pagination component
-│   │   ├── NavigationBar.jsx # Role-based navigation
-│   │   ├── Dropdown.jsx      # Interactive dropdowns
-│   │   ├── DatePicker.jsx    # Date selection component
-│   │   ├── Modal.jsx         # Dialog modals
-│   │   ├── Button.jsx        # Enhanced button component
-│   │   ├── Card.jsx          # Content cards
-│   │   ├── FormField.jsx     # Form input fields
-│   │   ├── SearchComponent.jsx # Search functionality
-│   │   ├── LoadingSpinner.jsx # Loading indicators
-│   │   └── NotificationToast.jsx # Toast notifications
-│   ├── views/                # Page-level components
-│   │   ├── AthleteUserPage.jsx # Athlete dashboard
-│   │   ├── SponsorUserPage.jsx # Sponsor dashboard  
-│   │   ├── FanUserPage.jsx    # Fan dashboard
-│   │   └── ProfilePages.jsx   # User profile views
-│   ├── contexts/             # React context providers
-│   │   ├── UserContext.jsx   # User state management
-│   │   ├── GamificationContext.jsx # Achievement system
-│   │   └── ToastContext.jsx  # Notification system
-│   ├── utils/                # Utility functions
-│   │   ├── responsive.jsx    # Screen size utilities
-│   │   ├── accessibility.jsx # WCAG compliance helpers
-│   │   ├── performance.jsx   # Performance optimization
-│   │   └── validation.js     # Form validation
-│   ├── Auth.jsx             # Authentication UI (login/register)
-│   ├── ApiDemo.jsx          # API integration demo
-│   ├── LandingPage.jsx      # Main landing page
-│   ├── NavBar.jsx           # Navigation component
-│   ├── UserInfo.jsx         # User profile display
-│   ├── main.jsx            # React app entry point
-│   └── app.js              # Static site JavaScript
-├── public/                  # Static assets
-│   ├── styles.css          # Main stylesheet
-│   ├── robots.txt          # SEO configuration
-│   └── error.html          # Error page
-├── assets/                 # Images, icons, fonts
-├── tests/                  # Test files
-│   ├── components/         # Component test suites
-│   ├── utils/             # Utility test suites
-│   ├── basic.test.jsx     # Basic functionality tests
-│   ├── setup.js          # Test configuration
-│   ├── test_frontend_basic.js    # Local integration tests
-│   └── test_frontend_aws.js      # Cloud deployment tests
-├── index.html             # Static landing page
-├── index-react.html       # React SPA entry point
-├── vite.config.js        # Vite build configuration
-├── vitest.config.js      # Test configuration
-└── package.json          # Dependencies and scripts
+│   ├── components/          # Reusable React components
+│   │   ├── auth/           # Authentication components
+│   │   ├── blockchain/     # Web3 integration components
+│   │   └── ui/            # Common UI components
+│   ├── services/           # API integration services
+│   │   ├── api.js         # Core API service
+│   │   ├── authService.js  # Authentication service
+│   │   └── blockchainService.js # Web3 service
+│   ├── utils/             # Utility functions
+│   │   └── config.js      # Configuration management
+│   └── views/             # Page components
+├── public/                # Static assets
+└── tests/                # Test files
 ```
 
 
@@ -370,6 +351,111 @@ The frontend automatically detects and switches between local and cloud endpoint
 ```
 
 ### 🏆 **Role-Based User Pages**
+
+## API Integration System
+
+### Service Architecture
+
+The frontend uses a unified API integration system with three main service layers:
+
+#### 1. API Service (`src/services/api.js`)
+- Central coordination for all API calls
+- Service discovery and routing
+- Response handling and error management
+- Cross-service communication
+- Blockchain integration (centralized mode)
+
+```javascript
+// Example API service usage
+import apiService from '../services/api.js';
+
+// User management
+const profile = await apiService.getUserProfile();
+await apiService.updateUserProfile(data);
+
+// Company data
+const companyData = await apiService.getCompanyData();
+await apiService.updateCompanyData(data);
+
+// Blockchain operations (centralized mode)
+await apiService.connectWallet();
+const nftResult = await apiService.mintNFT(tokenURI);
+const sponsorship = await apiService.createSponsorship(athleteAddress, amount);
+```
+
+#### 2. Auth Service (`src/services/authService.js`)
+- User authentication and registration
+- JWT token management
+- Session handling
+- Role-based access control
+
+```javascript
+// Example auth service usage
+import { authService } from '../services/authService.js';
+
+// Authentication
+const loginResult = await authService.login(credentials);
+const registrationResult = await authService.register(userData);
+await authService.logout();
+
+// User management
+const currentUser = await authService.getCurrentUser();
+const userRole = authService.getRoleFromToken();
+```
+
+#### 3. Blockchain Service (`src/services/blockchainService.js`)
+- Web3 wallet integration
+- Smart contract interaction
+- NFT minting and management
+- Sponsorship contract handling
+
+```javascript
+// Example blockchain service usage
+import blockchainService from '../services/blockchainService.js';
+
+// Wallet connection
+const account = await blockchainService.connectWallet();
+
+// NFT operations
+const nftResult = await blockchainService.mintNFT(tokenURI);
+const tokenDetails = await blockchainService.getTokenURI(tokenId);
+
+// Sponsorship operations
+const sponsorship = await blockchainService.createSponsorship(athleteAddress, amount);
+const details = await blockchainService.getSponsorshipDetails(sponsorshipId);
+```
+
+### Configuration System
+
+The configuration system (`src/utils/config.js`) provides centralized management of:
+- Environment detection
+- API endpoints
+- Feature flags
+- Blockchain settings
+- Authentication configuration
+
+```javascript
+import { config, utils } from '../utils/config';
+
+// Environment & mode detection
+console.log('Current mode:', config.mode); // 'standalone' or 'centralized'
+console.log('Development:', utils.isDevelopment());
+
+// API endpoints
+console.log('API URL:', config.apiUrl);
+console.log('Auth Service:', config.authServiceUrl);
+
+// Feature flags
+if (config.features.blockchain) {
+  // Enable blockchain features
+}
+
+// Blockchain configuration
+console.log('Chain ID:', config.blockchain.chainId);
+console.log('RPC URL:', config.blockchain.rpcUrl);
+```
+
+### Role-Based User Pages
 
 #### **Athlete User Page** (`/dashboard/athlete`)
 
@@ -1058,11 +1144,31 @@ curl -I https://nilbx.com
 - 🔄 Fan dashboard with favorites and social features
 - 🔄 Role-based navigation and route protection
 
-**API Integration**:
-- 🔄 File upload endpoints for profile pictures and documents
-- 🔄 User profile management APIs
-- 🔄 Sponsorship and campaign management
-- 🔄 Social sharing analytics and tracking
+**API Integration System**:
+- ✅ Unified API service architecture
+- ✅ Authentication service with JWT management
+- ✅ Blockchain service for Web3 features
+- ✅ Cross-service communication
+- ✅ Health check system
+
+**Service Integration**:
+- ✅ File upload endpoints for profile pictures and documents
+- ✅ User profile management APIs
+- ✅ Sponsorship and campaign management
+- ✅ Social sharing analytics and tracking
+- 🔄 Real-time updates and notifications
+- 🔄 Advanced analytics integration
+
+### Recent Updates
+
+#### API Integration System (October 17, 2025)
+- ✅ Implemented unified API service architecture
+- ✅ Enhanced authentication service with token management
+- ✅ Added blockchain service for Web3 integration
+- ✅ Updated configuration system for dual-mode support
+- ✅ Improved error handling and response management
+- ✅ Added cross-service communication
+- ✅ Implemented health check system
 
 ### 📋 **Next Steps**
 

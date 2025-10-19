@@ -101,9 +101,13 @@ export const GamificationProvider = ({ children }) => {
   // Load user stats from localStorage
   useEffect(() => {
     if (user?.email) {
-      const savedStats = localStorage.getItem(`gamification_${user.email}`);
-      if (savedStats) {
-        setUserStats(JSON.parse(savedStats));
+      try {
+        const savedStats = localStorage.getItem(`gamification_${user.email}`);
+        if (savedStats) {
+          setUserStats(JSON.parse(savedStats));
+        }
+      } catch (error) {
+        console.error('Error loading gamification data:', error);
       }
     }
   }, [user]);
@@ -111,7 +115,11 @@ export const GamificationProvider = ({ children }) => {
   // Save user stats to localStorage
   useEffect(() => {
     if (user?.email) {
-      localStorage.setItem(`gamification_${user.email}`, JSON.stringify(userStats));
+      try {
+        localStorage.setItem(`gamification_${user.email}`, JSON.stringify(userStats));
+      } catch (error) {
+        console.error('Error saving gamification data:', error);
+      }
     }
   }, [userStats, user]);
 
@@ -468,11 +476,11 @@ export const UserStatsWidget = ({ className = '' }) => {
           <span className="text-2xl">{currentLevel.icon}</span>
           <div>
             <h3 className="font-semibold text-gray-900">{currentLevel.title}</h3>
-            <p className="text-sm text-gray-600">Level {currentLevel.level}</p>
+            <p data-testid="level" className="text-sm text-gray-600">Level {currentLevel.level}</p>
           </div>
         </div>
         <div className="text-right">
-          <div className="text-xl font-bold text-blue-600">{userStats.points}</div>
+          <div data-testid="points" className="text-xl font-bold text-blue-600">{userStats.points}</div>
           <div className="text-xs text-gray-500">points</div>
         </div>
       </div>
@@ -492,15 +500,15 @@ export const UserStatsWidget = ({ className = '' }) => {
 
       <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t">
         <div className="text-center">
-          <div className="text-lg font-bold text-gray-900">{userStats.streak}</div>
+          <div data-testid="streak" className="text-lg font-bold text-gray-900">{userStats.streak}</div>
           <div className="text-xs text-gray-500">day streak</div>
         </div>
         <div className="text-center">
-          <div className="text-lg font-bold text-gray-900">{userStats.totalDeals}</div>
+          <div data-testid="deals" className="text-lg font-bold text-gray-900">{userStats.totalDeals}</div>
           <div className="text-xs text-gray-500">deals</div>
         </div>
         <div className="text-center">
-          <div className="text-lg font-bold text-gray-900">{userStats.achievements.length}</div>
+          <div data-testid="achievements" className="text-lg font-bold text-gray-900">{userStats.achievements.length}</div>
           <div className="text-xs text-gray-500">achievements</div>
         </div>
       </div>

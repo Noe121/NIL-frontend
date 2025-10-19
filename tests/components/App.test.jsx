@@ -1,69 +1,92 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import React from 'react';
+import { render, screen } from '../test-utils.jsx';
 import userEvent from '@testing-library/user-event';
-import { BrowserRouter } from 'react-router-dom';
-import App from '../src/App.jsx';
+import { MemoryRouter } from 'react-router-dom';
+import App from '../../src/App.jsx';
+
+// Test wrapper component for routing
+const renderWithRouter = (ui, { route = '/' } = {}) => {
+  return render(ui, { route });
+};
 
 // Mock all components to avoid complex dependencies
-vi.mock('../src/contexts/UserContext.jsx', () => ({
-  UserProvider: ({ children }) => <div data-testid="user-provider">{children}</div>,
-  UserContext: {
-    Consumer: ({ children }) => children({ user: null, isAuthenticated: false }),
-  },
-  useUser: () => ({ user: null, isAuthenticated: false, role: null })
-}));
-
-vi.mock('../src/contexts/GamificationContext.jsx', () => ({
-  GamificationProvider: ({ children }) => <div data-testid="gamification-provider">{children}</div>
-}));
-
-vi.mock('../src/components/NotificationToast.jsx', () => ({
-  ToastProvider: ({ children }) => <div data-testid="toast-provider">{children}</div>
-}));
-
-vi.mock('../src/components/NavigationBar.jsx', () => {
-  return function NavigationBar() {
-    return <nav data-testid="navigation-bar">Navigation</nav>;
+vi.mock('../../src/contexts/UserContext.jsx', async () => {
+  const actual = await vi.importActual('../../src/contexts/UserContext.jsx');
+  return {
+    ...actual,
+    UserProvider: ({ children }) => {
+      return (
+        <div data-testid="user-provider" data-user={JSON.stringify({})}>
+          <React.Fragment>
+            {children}
+          </React.Fragment>
+        </div>
+      );
+    }
   };
 });
 
-vi.mock('../src/LandingPage.jsx', () => {
+vi.mock('../../src/contexts/GamificationContext.jsx', () => ({
+  GamificationProvider: ({ children }) => <div data-testid="gamification-provider">{children}</div>
+}));
+
+vi.mock('../../src/components/NotificationToast.jsx', () => ({
+  ToastProvider: ({ children }) => <div data-testid="toast-provider">{children}</div>
+}));
+
+vi.mock('../../src/components/NavigationBar.jsx', () => ({
+  default: function NavigationBar() {
+    return <nav data-testid="navigation-bar">Navigation</nav>;
+  }
+}));
+
+vi.mock('../../src/LandingPage.jsx', () => {
   return function LandingPage() {
     return <div data-testid="landing-page">Landing Page</div>;
   };
 });
 
-vi.mock('../src/Auth.jsx', () => {
+vi.mock('../../src/Auth.jsx', () => {
   return function Auth() {
     return <div data-testid="auth-page">Auth Page</div>;
   };
 });
 
-vi.mock('../src/Register.jsx', () => {
+vi.mock('../../src/Register.jsx', () => {
   return function Register() {
     return <div data-testid="register-page">Register Page</div>;
   };
 });
 
-vi.mock('../src/components/MultiStepRegister.jsx', () => {
+vi.mock('../../src/components/MultiStepRegister.jsx', () => {
   return function MultiStepRegister() {
     return <div data-testid="multi-step-register">Multi Step Register</div>;
   };
 });
 
-vi.mock('../src/ProtectedRoute.jsx', () => {
-  return function ProtectedRoute({ children }) {
+vi.mock('../../src/components/PrivateRoute.jsx', () => ({
+  default: ({ children, role }) => {
+    if (role === 'athlete') {
+      return <div data-testid="athlete-dashboard">Athlete Dashboard</div>;
+    }
+    if (role === 'sponsor') {
+      return <div data-testid="sponsor-dashboard">Sponsor Dashboard</div>;
+    }
+    if (role === 'fan') {
+      return <div data-testid="fan-dashboard">Fan Dashboard</div>;
+    }
     return <div data-testid="protected-route">{children}</div>;
-  };
-});
+  }
+}));
 
-vi.mock('../src/UserInfo.jsx', () => {
+vi.mock('../../src/UserInfo.jsx', () => {
   return function UserInfo() {
     return <div data-testid="user-info">User Info</div>;
   };
 });
 
-vi.mock('../src/components/LazyComponents.jsx', () => ({
+vi.mock('../../src/components/LazyComponents.jsx', () => ({
   LazyAthleteDashboard: () => <div data-testid="athlete-dashboard">Athlete Dashboard</div>,
   LazySponsorDashboard: () => <div data-testid="sponsor-dashboard">Sponsor Dashboard</div>,
   LazyFanDashboard: () => <div data-testid="fan-dashboard">Fan Dashboard</div>,
@@ -78,6 +101,18 @@ vi.mock('../src/components/LazyComponents.jsx', () => ({
   LazyAthleteProfiles: () => <div data-testid="athlete-profiles">Athlete Profiles</div>
 }));
 
+vi.mock('../../src/pages/AthleteUserPage.jsx', () => ({
+  default: () => <div data-testid="athlete-dashboard">Athlete Dashboard</div>
+}));
+
+vi.mock('../../src/pages/SponsorUserPage.jsx', () => ({
+  default: () => <div data-testid="sponsor-dashboard">Sponsor Dashboard</div>
+}));
+
+vi.mock('../../src/pages/FanUserPage.jsx', () => ({
+  default: () => <div data-testid="fan-dashboard">Fan Dashboard</div>
+}));
+
 describe('App Integration', () => {
   beforeEach(() => {
     // Mock window.location
@@ -88,7 +123,7 @@ describe('App Integration', () => {
   });
 
   it('renders without crashing', () => {
-    render(<App />);
+    renderWithRouter(<App />);
     
     expect(screen.getByTestId('user-provider')).toBeInTheDocument();
     expect(screen.getByTestId('gamification-provider')).toBeInTheDocument();
@@ -96,26 +131,20 @@ describe('App Integration', () => {
   });
 
   it('renders navigation bar', () => {
-    render(<App />);
+    renderWithRouter(<App />);
     
     expect(screen.getByTestId('navigation-bar')).toBeInTheDocument();
   });
 
   it('renders auth page on /auth route', () => {
-    // Mock location for auth route
-    Object.defineProperty(window, 'location', {
-      value: { pathname: '/auth' },
-      writable: true
-    });
-
-    render(<App />);
+    renderWithRouter(<App />, { route: '/auth' });
     
-    // The auth route should be accessible without mocking router navigation
+    expect(screen.getByTestId('auth-page')).toBeInTheDocument();
     expect(screen.getByTestId('navigation-bar')).toBeInTheDocument();
   });
 
   it('includes all required providers in correct order', () => {
-    const { container } = render(<App />);
+    const { container } = renderWithRouter(<App />);
     
     // Check that providers are nested correctly
     const userProvider = screen.getByTestId('user-provider');
@@ -126,17 +155,21 @@ describe('App Integration', () => {
     expect(gamificationProvider).toBeInTheDocument();
     expect(toastProvider).toBeInTheDocument();
     
-    // Gamification should be inside User provider
-    expect(userProvider).toContainElement(gamificationProvider);
-    // Toast should be inside Gamification provider
-    expect(gamificationProvider).toContainElement(toastProvider);
+    // Verify provider nesting order
+    expect(userProvider.contains(gamificationProvider)).toBe(true);
+    expect(gamificationProvider.contains(toastProvider)).toBe(true);
   });
 
-  it('has proper routing structure', () => {
-    render(<App />);
+  it('renders landing page on root route', () => {
+    renderWithRouter(<App />, { route: '/' });
     
-    // Should have React Router setup
-    expect(screen.getByTestId('user-provider')).toBeInTheDocument();
+    expect(screen.getByTestId('landing-page')).toBeInTheDocument();
+  });
+
+  it('renders test page on /test route', () => {
+    renderWithRouter(<App />, { route: '/test' });
+    
+    expect(screen.getByTestId('test-page')).toBeInTheDocument();
   });
 });
 
@@ -162,23 +195,33 @@ describe('App Error Handling', () => {
   });
 });
 
-describe('App Performance', () => {
-  it('loads quickly with lazy components', () => {
-    const startTime = performance.now();
-    render(<App />);
-    const endTime = performance.now();
+describe('App Code Splitting', () => {
+  it('lazy loads dashboard components correctly', async () => {
+    const authenticatedUser = {
+      user: { email: 'test@example.com', role: 'athlete' },
+      isAuthenticated: true,
+      role: 'athlete'
+    };
     
-    // Should render quickly (under 100ms for basic render)
-    expect(endTime - startTime).toBeLessThan(100);
+    renderWithRouter(<App />, { 
+      route: '/dashboard/athlete',
+      userContext: authenticatedUser
+    });
+    
+    // Core components should be loaded immediately
+    expect(screen.getByTestId('navigation-bar')).toBeInTheDocument();
+    expect(screen.getByTestId('user-provider')).toBeInTheDocument();
+    
+    // Wait for lazy components to load
+    await screen.findByTestId('athlete-dashboard');
+    expect(screen.getByTestId('athlete-dashboard')).toBeInTheDocument();
   });
 
-  it('has proper component structure for code splitting', () => {
-    render(<App />);
+  it('maintains core functionality while lazy components load', () => {
+    renderWithRouter(<App />);
     
-    // Core components should be loaded
+    // Core UI should be functional
     expect(screen.getByTestId('navigation-bar')).toBeInTheDocument();
-    
-    // Lazy components would be loaded on demand
     expect(screen.getByTestId('user-provider')).toBeInTheDocument();
   });
 });

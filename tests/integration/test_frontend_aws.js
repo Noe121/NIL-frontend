@@ -1,6 +1,31 @@
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
+
+// Retry configuration
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 2000; // 2 seconds
+
+// Utility function to wait
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Retry mechanism for API calls
+async function retryRequest(fn, retries = MAX_RETRIES) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      if (error.response?.status === 429) {
+        // Rate limited - wait longer
+        await wait(RETRY_DELAY * 2);
+      } else {
+        await wait(RETRY_DELAY);
+      }
+    }
+  }
+}
 
 // Load Terraform outputs for cloud configuration
 function loadCloudConfig() {
@@ -52,10 +77,16 @@ async function testCloudConfiguration() {
   console.log('🔍 Test 1: Testing API URL accessibility...');
   try {
     if (cloudConfig.API_URL) {
-      const response = await axios.get(cloudConfig.API_URL, {
+      const response = await retryRequest(() => axios.get(cloudConfig.API_URL, {
         timeout: 10000,
-        validateStatus: () => true // Accept any status
-      });
+        validateStatus: () => true, // Accept any status
+        httpsAgent: new https.Agent({
+          rejectUnauthorized: true // Enforce SSL certificate validation
+        }),
+        headers: {
+          'User-Agent': 'NIL-Frontend-Test/1.0'
+        }
+      }));
       if (response.status < 500) {
         console.log(`✅ API URL is accessible (Status: ${response.status})`);
         passed++;
@@ -74,10 +105,23 @@ async function testCloudConfiguration() {
   console.log('🔍 Test 2: Testing Auth Service URL...');
   if (cloudConfig.AUTH_SERVICE_URL && !cloudConfig.AUTH_SERVICE_URL.includes('<your-auth-service-dns-or-alb>')) {
     try {
-      const response = await axios.get(cloudConfig.AUTH_SERVICE_URL.replace('/login', '/docs'), {
+      // Validate DNS first
+      const hostname = new URL(cloudConfig.AUTH_SERVICE_URL).hostname;
+      const dnsValid = await validateDNS(hostname);
+      if (!dnsValid) {
+        throw new Error('DNS resolution failed');
+      }
+
+      const response = await retryRequest(() => axios.get(cloudConfig.AUTH_SERVICE_URL.replace('/login', '/docs'), {
         timeout: 10000,
-        validateStatus: () => true
-      });
+        validateStatus: () => true,
+        httpsAgent: new https.Agent({
+          rejectUnauthorized: true
+        }),
+        headers: {
+          'User-Agent': 'NIL-Frontend-Test/1.0'
+        }
+      }));
       if (response.status < 500) {
         console.log(`✅ Auth Service URL is accessible (Status: ${response.status})`);
         passed++;
@@ -110,7 +154,15 @@ async function testCloudConfiguration() {
       console.log('❌ No Frontend URL configured');
     }
   } catch (error) {
-    console.log(`❌ Frontend URL test failed: ${error.message}`);
+    if (error.code === 'CERT_INVALID') {
+      console.log('❌ Frontend URL SSL certificate validation failed');
+    } else if (error.code === 'ENOTFOUND') {
+      console.log('❌ Frontend URL DNS resolution failed');
+    } else if (error.response?.status === 429) {
+      console.log('❌ Frontend URL rate limited');
+    } else {
+      console.log(`❌ Frontend URL test failed: ${error.message}`);
+    }
   }
 
   // Test 4: CloudFront distribution
@@ -195,6 +247,46 @@ async function testCloudConfiguration() {
   console.log('5. Test authentication flow with cloud auth service');
 }
 
+// Helper function to validate DNS
+async function validateDNS(hostname) {
+  return new Promise((resolve) => {
+    require('dns').resolve(hostname, (err) => {
+      resolve(!err);
+    });
+  });
+}
+
+// Helper to check SSL certificate
+async function validateSSL(url) {
+  return new Promise((resolve) => {
+    const req = https.get(url, { rejectUnauthorized: true }, (res) => {
+      res.destroy();
+      resolve(true);
+    });
+    req.on('error', () => resolve(false));
+    req.end();
+  });
+}
+
+// Run all tests
+async function runTests() {
+  try {
+    await testCloudConfiguration();
+  } catch (error) {
+    console.error('Test execution failed:', error.message);
+    process.exit(1);
+  }
+}
+
+// Export test functions for use in test runners
+module.exports = {
+  testCloudConfiguration,
+  validateDNS,
+  validateSSL,
+  loadCloudConfig
+};
+
+// Run tests if this file is being run directly
 if (require.main === module) {
-  testCloudConfiguration();
+  runTests();
 }

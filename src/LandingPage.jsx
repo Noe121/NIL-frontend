@@ -401,6 +401,24 @@ export default function LandingPage() {
           <div className="welcome-message">
             <h3>Welcome back, {user.name || user.email}!</h3>
             <p>You're logged in as a {role}. Enjoy your personalized experience!</p>
+            <div className="dashboard-link" style={{ marginTop: '1rem' }}>
+              <a 
+                href={`/dashboard/${role}`} 
+                style={{
+                  backgroundColor: contentStyle.accentColor,
+                  color: '#fff',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '6px',
+                  textDecoration: 'none',
+                  display: 'inline-block',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseOver={e => e.target.style.filter = 'brightness(1.1)'}
+                onMouseOut={e => e.target.style.filter = 'brightness(1)'}
+              >
+                Go to {role.charAt(0).toUpperCase() + role.slice(1)} Dashboard
+              </a>
+            </div>
           </div>
         )}
         

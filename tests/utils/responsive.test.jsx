@@ -1,23 +1,61 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderHook, act } from '@testing-library/react';
-import { useScreenSize, useTouchGestures, MobileDrawer } from '../src/utils/responsive.js';
+import { renderHook } from '@testing-library/react';
+import { useScreenSize, useTouchGestures, MobileDrawer } from '../../src/utils/responsive.jsx';
 
-// Mock window.matchMedia
-const mockMatchMedia = (matches) => {
-  Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    value: vi.fn().mockImplementation((query) => ({
+// Enhanced matchMedia mock with event handling
+const createMatchMedia = (matches, listeners = new Set()) => {
+  const matchMedia = (query) => {
+    const mql = {
       matches,
       media: query,
       onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })),
+      addListener: (fn) => listeners.add(fn),
+      removeListener: (fn) => listeners.delete(fn),
+      addEventListener: (event, fn) => listeners.add(fn),
+      removeEventListener: (event, fn) => listeners.delete(fn),
+      dispatchEvent: (event) => {
+        listeners.forEach(listener => listener(event));
+        return true;
+      }
+    };
+    return mql;
+  };
+  return { matchMedia, listeners };
+};
+
+// Mock ResizeObserver
+class ResizeObserverMock {
+  constructor(callback) {
+    this.callback = callback;
+    this.observations = new Map();
+  }
+  
+  observe(element) {
+    this.observations.set(element, { width: 100, height: 100 });
+    this.callback([{ target: element }]);
+  }
+  
+  unobserve(element) {
+    this.observations.delete(element);
+  }
+  
+  disconnect() {
+    this.observations.clear();
+  }
+}
+
+global.ResizeObserver = ResizeObserverMock;
+
+// Mock matchMedia
+let mediaQueryListeners;
+const mockMatchMedia = (matches) => {
+  const { matchMedia, listeners } = createMatchMedia(matches);
+  mediaQueryListeners = listeners;
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation(matchMedia),
   });
 };
 
@@ -355,37 +393,62 @@ describe('MobileDrawer Component', () => {
     expect(screen.queryByText('Drawer Button')).not.toBeInTheDocument();
   });
 
-  it('prevents body scroll when open', () => {
-    render(
-      <MobileDrawer {...defaultProps} isOpen={true}>
-        <div>Test Content</div>
-      </MobileDrawer>
-    );
+  it('prevents body scroll when open', async () => {
+    await act(async () => {
+      render(
+        <MobileDrawer {...defaultProps} isOpen={true}>
+          <div>Test Content</div>
+        </MobileDrawer>
+      );
+    });
 
     // Should add class to prevent body scroll
-    expect(document.body).toHaveClass('overflow-hidden');
+    await waitFor(() => {
+      expect(document.body.className.includes('overflow-hidden')).toBe(true);
+    });
   });
 
-  it('restores body scroll when closed', () => {
-    const { rerender } = render(
-      <MobileDrawer {...defaultProps} isOpen={true}>
-        <div>Test Content</div>
-      </MobileDrawer>
-    );
+  it('restores body scroll when closed', async () => {
+    const { rerender } = await act(async () => {
+      return render(
+        <MobileDrawer {...defaultProps} isOpen={true}>
+          <div>Test Content</div>
+        </MobileDrawer>
+      );
+    });
 
-    expect(document.body).toHaveClass('overflow-hidden');
+    await waitFor(() => {
+      expect(document.body.className.includes('overflow-hidden')).toBe(true);
+    });
 
-    rerender(
-      <MobileDrawer {...defaultProps} isOpen={false}>
-        <div>Test Content</div>
-      </MobileDrawer>
-    );
+    await act(async () => {
+      rerender(
+        <MobileDrawer {...defaultProps} isOpen={false}>
+          <div>Test Content</div>
+        </MobileDrawer>
+      );
+    });
 
-    expect(document.body).not.toHaveClass('overflow-hidden');
+    await waitFor(() => {
+      expect(document.body.className.includes('overflow-hidden')).toBe(false);
+    });
   });
 });
 
 describe('Responsive Utility Functions', () => {
+  let originalWindowWidth;
+  let originalWindowHeight;
+
+  beforeEach(() => {
+    originalWindowWidth = window.innerWidth;
+    originalWindowHeight = window.innerHeight;
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'innerWidth', { value: originalWindowWidth });
+    Object.defineProperty(window, 'innerHeight', { value: originalWindowHeight });
+  });
+
   describe('breakpoint detection', () => {
     it('correctly identifies mobile breakpoint', () => {
       Object.defineProperty(window, 'innerWidth', { value: 480 });
@@ -393,6 +456,7 @@ describe('Responsive Utility Functions', () => {
       
       const { result } = renderHook(() => useScreenSize());
       expect(result.current.isMobile).toBe(true);
+      expect(result.current.breakpoint).toBe('mobile');
     });
 
     it('correctly identifies tablet breakpoint', () => {
@@ -401,6 +465,7 @@ describe('Responsive Utility Functions', () => {
       
       const { result } = renderHook(() => useScreenSize());
       expect(result.current.isTablet).toBe(true);
+      expect(result.current.breakpoint).toBe('tablet');
     });
 
     it('correctly identifies desktop breakpoint', () => {
@@ -408,6 +473,64 @@ describe('Responsive Utility Functions', () => {
       mockMatchMedia(false);
       
       const { result } = renderHook(() => useScreenSize());
+      expect(result.current.isDesktop).toBe(true);
+      expect(result.current.breakpoint).toBe('desktop');
+    });
+
+    it('handles edge breakpoint cases', () => {
+      // Test exact breakpoint values
+      Object.defineProperty(window, 'innerWidth', { value: 767 }); // 1px below tablet
+      mockMatchMedia(true);
+      const { result: mobileResult } = renderHook(() => useScreenSize());
+      expect(mobileResult.current.isMobile).toBe(true);
+
+      Object.defineProperty(window, 'innerWidth', { value: 768 }); // Exact tablet breakpoint
+      mockMatchMedia(false);
+      const { result: tabletResult } = renderHook(() => useScreenSize());
+      expect(tabletResult.current.isTablet).toBe(true);
+
+      Object.defineProperty(window, 'innerWidth', { value: 1024 }); // Exact desktop breakpoint
+      mockMatchMedia(false);
+      const { result: desktopResult } = renderHook(() => useScreenSize());
+      expect(desktopResult.current.isDesktop).toBe(true);
+    });
+
+    it('handles extreme screen sizes', () => {
+      // Test very small screen
+      Object.defineProperty(window, 'innerWidth', { value: 200 });
+      mockMatchMedia(true);
+      const { result: tinyScreen } = renderHook(() => useScreenSize());
+      expect(tinyScreen.current.isMobile).toBe(true);
+      expect(tinyScreen.current.width).toBe(200);
+
+      // Test very large screen
+      Object.defineProperty(window, 'innerWidth', { value: 3840 }); // 4K width
+      mockMatchMedia(false);
+      const { result: hugeScreen } = renderHook(() => useScreenSize());
+      expect(hugeScreen.current.isDesktop).toBe(true);
+      expect(hugeScreen.current.width).toBe(3840);
+    });
+
+    it('handles rapid breakpoint changes', () => {
+      const { result } = renderHook(() => useScreenSize());
+      
+      // Simulate rapid window resizes
+      act(() => {
+        Object.defineProperty(window, 'innerWidth', { value: 360 });
+        window.dispatchEvent(new Event('resize'));
+      });
+      expect(result.current.isMobile).toBe(true);
+
+      act(() => {
+        Object.defineProperty(window, 'innerWidth', { value: 768 });
+        window.dispatchEvent(new Event('resize'));
+      });
+      expect(result.current.isTablet).toBe(true);
+
+      act(() => {
+        Object.defineProperty(window, 'innerWidth', { value: 1024 });
+        window.dispatchEvent(new Event('resize'));
+      });
       expect(result.current.isDesktop).toBe(true);
     });
   });
@@ -420,6 +543,7 @@ describe('Responsive Utility Functions', () => {
       const { result } = renderHook(() => useScreenSize());
       expect(result.current.isPortrait).toBe(true);
       expect(result.current.isLandscape).toBe(false);
+      expect(result.current.orientation).toBe('portrait');
     });
 
     it('detects landscape orientation', () => {
@@ -429,6 +553,88 @@ describe('Responsive Utility Functions', () => {
       const { result } = renderHook(() => useScreenSize());
       expect(result.current.isLandscape).toBe(true);
       expect(result.current.isPortrait).toBe(false);
+      expect(result.current.orientation).toBe('landscape');
+    });
+
+    it('handles orientation changes', () => {
+      const { result } = renderHook(() => useScreenSize());
+      
+      // Start in portrait
+      act(() => {
+        Object.defineProperty(window, 'innerWidth', { value: 375 });
+        Object.defineProperty(window, 'innerHeight', { value: 667 });
+        window.dispatchEvent(new Event('resize'));
+      });
+      expect(result.current.isPortrait).toBe(true);
+
+      // Change to landscape
+      act(() => {
+        Object.defineProperty(window, 'innerWidth', { value: 667 });
+        Object.defineProperty(window, 'innerHeight', { value: 375 });
+        window.dispatchEvent(new Event('resize'));
+      });
+      expect(result.current.isLandscape).toBe(true);
+    });
+
+    it('handles square dimensions', () => {
+      Object.defineProperty(window, 'innerWidth', { value: 500 });
+      Object.defineProperty(window, 'innerHeight', { value: 500 });
+      
+      const { result } = renderHook(() => useScreenSize());
+      expect(result.current.isPortrait).toBe(false);
+      expect(result.current.isLandscape).toBe(false);
+      expect(result.current.orientation).toBe('square');
+    });
+
+    it('handles orientation media query changes', () => {
+      const { result } = renderHook(() => useScreenSize());
+      
+      // Simulate orientation media query change
+      act(() => {
+        const event = new Event('change');
+        event.matches = true;
+        mediaQueryListeners.forEach(listener => listener(event));
+      });
+
+      expect(result.current.orientation).toBeDefined();
+    });
+
+    it('cleans up orientation listeners', () => {
+      const { unmount } = renderHook(() => useScreenSize());
+      unmount();
+      expect(mediaQueryListeners.size).toBe(0);
+    });
+  });
+
+  describe('performance and optimization', () => {
+    it('debounces resize events', async () => {
+      vi.useFakeTimers();
+      const { result } = renderHook(() => useScreenSize());
+      
+      // Trigger multiple resize events rapidly
+      for (let i = 0; i < 5; i++) {
+        act(() => {
+          Object.defineProperty(window, 'innerWidth', { value: 800 + i });
+          window.dispatchEvent(new Event('resize'));
+        });
+      }
+      
+      // Fast-forward debounce timeout
+      act(() => {
+        vi.runAllTimers();
+      });
+      
+      expect(result.current.width).toBe(804);
+      vi.useRealTimers();
+    });
+
+    it('caches screen size calculations', () => {
+      const { result, rerender } = renderHook(() => useScreenSize());
+      const initialResult = result.current;
+      
+      // Rerender without changes
+      rerender();
+      expect(result.current).toBe(initialResult);
     });
   });
 });

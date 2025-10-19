@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import DatePicker from '../src/components/DatePicker.jsx';
+import DatePicker from '../../src/components/DatePicker.jsx';
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
@@ -13,14 +13,29 @@ vi.mock('framer-motion', () => ({
 }));
 
 // Mock responsive utilities
-vi.mock('../src/utils/responsive.js', () => ({
-  useScreenSize: () => ({ isMobile: false }),
-  useTouchGestures: () => {}
+vi.mock('../../src/utils/responsive.jsx', () => ({
+  useScreenSize: vi.fn(() => ({ isMobile: false, isTablet: false, isDesktop: true })),
+  useTouchGestures: vi.fn((ref, handlers) => {
+    if (ref && ref.current) {
+      const { onSwipeLeft, onSwipeRight, onSwipeUp } = handlers;
+      ref.current.swipeLeft = onSwipeLeft;
+      ref.current.swipeRight = onSwipeRight;
+      ref.current.swipeUp = onSwipeUp;
+    }
+  })
 }));
 
 // Mock accessibility utilities
-vi.mock('../src/utils/accessibility.js', () => ({
-  getAccessibilityProps: (props) => props,
+vi.mock('../../src/utils/accessibility.jsx', () => ({
+  getAccessibilityProps: (props) => {
+    const result = {};
+    if (props.ariaLabel) result['aria-label'] = props.ariaLabel;
+    if (props.ariaModal !== undefined) result['aria-modal'] = props.ariaModal;
+    if (props.ariaExpanded !== undefined) result['aria-expanded'] = props.ariaExpanded;
+    if (props.ariaSelected !== undefined) result['aria-selected'] = props.ariaSelected;
+    if (props.role) result.role = props.role;
+    return result;
+  },
   focusElement: (element) => element?.focus()
 }));
 
@@ -84,6 +99,8 @@ describe('DatePicker Component', () => {
 
   it('displays current month and year in calendar header', async () => {
     const user = userEvent.setup();
+    const fixedDate = new Date(2025, 0, 15); // January 15, 2025
+    vi.setSystemTime(fixedDate);
     
     render(
       <DatePicker onChange={mockOnChange} />
@@ -92,14 +109,11 @@ describe('DatePicker Component', () => {
     const input = screen.getByRole('textbox');
     await user.click(input);
 
-    const currentDate = new Date();
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
+    expect(screen.getByText('2025')).toBeInTheDocument();
+    expect(screen.getByText('January')).toBeInTheDocument();
 
-    expect(screen.getByText(currentDate.getFullYear().toString())).toBeInTheDocument();
-    expect(screen.getByText(monthNames[currentDate.getMonth()])).toBeInTheDocument();
+    // Cleanup
+    vi.useRealTimers();
   });
 
   it('navigates to previous month when previous button is clicked', async () => {
@@ -155,6 +169,8 @@ describe('DatePicker Component', () => {
 
   it('highlights today\'s date', async () => {
     const user = userEvent.setup();
+    const fixedDate = new Date(2025, 0, 15); // January 15, 2025
+    vi.setSystemTime(fixedDate);
     
     render(
       <DatePicker highlightToday onChange={mockOnChange} />
@@ -163,11 +179,13 @@ describe('DatePicker Component', () => {
     const input = screen.getByRole('textbox');
     await user.click(input);
 
-    const today = new Date().getDate();
-    const todayElement = screen.getByText(today.toString());
+    const todayElement = screen.getByText('15');
     
     // Today should have special styling
-    expect(todayElement).toBeInTheDocument();
+    expect(todayElement).toHaveClass('bg-blue-50');
+
+    // Cleanup
+    vi.useRealTimers();
   });
 
   it('closes calendar when Escape is pressed', async () => {
@@ -230,9 +248,11 @@ describe('DatePicker Component', () => {
 
   it('respects minDate and maxDate constraints', async () => {
     const user = userEvent.setup();
-    const today = new Date();
-    const minDate = new Date(today.getFullYear(), today.getMonth(), 10);
-    const maxDate = new Date(today.getFullYear(), today.getMonth(), 20);
+    const baseDate = new Date(2025, 0, 15); // Use January 15, 2025 as fixed date
+    vi.setSystemTime(baseDate);
+    
+    const minDate = new Date(2025, 0, 10); // January 10
+    const maxDate = new Date(2025, 0, 20); // January 20
     
     render(
       <DatePicker 
@@ -246,11 +266,14 @@ describe('DatePicker Component', () => {
     await user.click(input);
 
     // Days outside the range should be disabled
-    const day5 = screen.getByText('5');
-    const day25 = screen.getByText('25');
+    const day5Button = screen.getByLabelText('5 January 2025');
+    const day25Button = screen.getByLabelText('25 January 2025');
     
-    expect(day5).toBeDisabled();
-    expect(day25).toBeDisabled();
+    expect(day5Button).toBeDisabled();
+    expect(day25Button).toBeDisabled();
+
+    // Cleanup
+    vi.useRealTimers();
   });
 });
 
@@ -294,7 +317,10 @@ describe('DatePicker with Time', () => {
     await user.click(input);
 
     // Should show AM/PM selector
-    expect(screen.getByDisplayValue('AM')).toBeInTheDocument();
+    const timeInputs = screen.getAllByRole('combobox');
+    const ampmSelect = timeInputs[timeInputs.length - 1]; // The AM/PM selector is the last select
+    expect(ampmSelect).toBeInTheDocument();
+    expect(ampmSelect).toHaveValue('AM');
   });
 
   it('supports 24-hour time format', async () => {
@@ -334,9 +360,14 @@ describe('DatePicker with Time', () => {
 
 describe('DatePicker Mobile Responsiveness', () => {
   beforeEach(() => {
-    vi.mocked(require('../src/utils/responsive.js').useScreenSize).mockReturnValue({
-      isMobile: true
-    });
+    vi.doMock('../../src/utils/responsive.jsx', () => ({
+      useScreenSize: () => ({
+        isMobile: true,
+        isTablet: false,
+        isDesktop: false
+      }),
+      useTouchGestures: vi.fn()
+    }));
   });
 
   it('adapts layout for mobile screens', async () => {

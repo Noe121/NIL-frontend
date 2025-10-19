@@ -20,7 +20,19 @@
     "test:all": "chmod +x tests/scripts/run_all_tests.sh && tests/scripts/run_all_tests.sh",
     "test:legacy": "node tests/integration/test_landingpage_integration.js",
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "dev:standalone": "cp .env.standalone .env && vite --port 5173 --mode standalone",
+    "dev:centralized": "cp .env.centralized .env && NODE_ENV=development VITE_MODE=centralized vite --port 5174 --mode centralized",
+    "build:standalone": "cp .env.standalone .env && vite build --mode standalone",
+    "build:centralized": "cp .env.centralized .env && vite build --mode centralized",
+    "preview:standalone": "cp .env.standalone .env && vite preview --port 4173",
+    "preview:centralized": "cp .env.centralized .env && vite preview --port 4174",
+    "setup:standalone": "./setup_frontend_standalone.sh",
+    "setup:centralized": "./setup_frontend_centralized.sh",
+    "switch:standalone": "cp .env.standalone .env && echo 'Switched to standalone mode'",
+    "switch:centralized": "cp .env.centralized .env && echo 'Switched to centralized mode'",
+    "health:check": "node -e \"import('./src/utils/config.js').then(c => c.checkAllServices().then(console.log))\"",
+    "blockchain:check": "./check_blockchain.sh"
   },
   "repository": {
     "type": "git",
@@ -34,19 +46,28 @@
   },
   "homepage": "https://github.com/Noe121/NIL-frontend#readme",
   "dependencies": {
+    "@rainbow-me/rainbowkit": "^2.2.9",
+    "@tanstack/react-query": "^5.90.5",
     "axios": "^1.6.0",
+    "ethers": "^6.15.0",
     "framer-motion": "^12.23.24",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-router-dom": "^6.23.0"
+    "prop-types": "^15.8.1",
+    "qr": "^0.5.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.23.0",
+    "react-toastify": "^11.0.5",
+    "viem": "^2.38.3",
+    "wagmi": "^2.18.1"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
+    "@testing-library/dom": "^9.3.3",
+    "@testing-library/jest-dom": "^6.1.4",
+    "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.6.1",
     "@vitejs/plugin-react": "^5.0.4",
     "jsdom": "^27.0.0",
-    "vite": "^7.1.9",
+    "vite": "^7.1.10",
     "vitest": "^3.2.4"
   }
 }

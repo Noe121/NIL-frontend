@@ -1,31 +1,50 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import Dropdown, { DropdownItem, DropdownDivider, DropdownHeader } from '../src/components/Dropdown.jsx';
+import React from 'react';
+import Dropdown, { DropdownItem, DropdownDivider, DropdownHeader } from '../../src/components/Dropdown.jsx';
+import * as accessibility from '../../src/utils/accessibility.jsx';
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }) => <div {...props}>{children}</div>,
-    button: ({ children, ...props }) => <button {...props}>{children}</button>
+    div: React.forwardRef(({ children, ...props }, ref) => <div ref={ref} {...props}>{children}</div>),
+    button: React.forwardRef(({ children, ...props }, ref) => <button ref={ref} {...props}>{children}</button>)
   },
-  AnimatePresence: ({ children }) => children
+  AnimatePresence: ({ children }) => children || null
 }));
 
 // Mock responsive utilities
-vi.mock('../src/utils/responsive.js', () => ({
-  useScreenSize: () => ({ isMobile: false, isTablet: false }),
-  useTouchGestures: () => {}
+vi.mock('../../src/utils/responsive.jsx', () => ({
+  useScreenSize: () => ({ isMobile: false, isTablet: false, isDesktop: true }),
+  useTouchGestures: (ref, handlers) => {
+    if (ref && ref.current) {
+      const { onSwipeLeft, onSwipeRight, onSwipeUp } = handlers;
+      ref.current.swipeLeft = onSwipeLeft;
+      ref.current.swipeRight = onSwipeRight;
+      ref.current.swipeUp = onSwipeUp;
+    }
+  }
 }));
 
 // Mock accessibility utilities
-vi.mock('../src/utils/accessibility.js', () => ({
+vi.mock('../../src/utils/accessibility.jsx', () => ({
   getAccessibilityProps: (props) => props,
-  focusElement: (element) => element?.focus()
+  focusElement: vi.fn((element) => {
+    if (element) {
+      element.focus();
+      // Mock the focus by setting a data attribute for testing
+      element.setAttribute('data-focused', 'true');
+    }
+  })
 }));
 
 describe('Dropdown Component', () => {
   const mockTrigger = <button>Open Dropdown</button>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('renders trigger element', () => {
     render(
@@ -38,8 +57,6 @@ describe('Dropdown Component', () => {
   });
 
   it('opens dropdown when trigger is clicked', async () => {
-    const user = userEvent.setup();
-    
     render(
       <Dropdown trigger={mockTrigger}>
         <DropdownItem>Item 1</DropdownItem>
@@ -47,9 +64,14 @@ describe('Dropdown Component', () => {
     );
 
     const trigger = screen.getByText('Open Dropdown');
-    await user.click(trigger);
+    
+    await act(async () => {
+      fireEvent.click(trigger);
+    });
 
-    expect(screen.getByText('Item 1')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Item 1')).toBeInTheDocument();
+    });
   });
 
   it('closes dropdown when clicking outside', async () => {
@@ -115,12 +137,24 @@ describe('Dropdown Component', () => {
     const trigger = screen.getByText('Open Dropdown');
     await user.click(trigger);
 
-    // Test arrow key navigation
-    await user.keyboard('{ArrowDown}');
-    await user.keyboard('{ArrowUp}');
+    const items = screen.getAllByRole('menuitem');
     
-    // Should cycle through items
-    expect(screen.getByText('Item 1')).toBeInTheDocument();
+    // Wait for focus to move to first item
+    await waitFor(() => {
+      expect(accessibility.focusElement).toHaveBeenCalledWith(items[0]);
+    });
+
+    // Navigate down
+    await user.keyboard('{ArrowDown}');
+    expect(accessibility.focusElement).toHaveBeenCalledWith(items[1]);
+
+    // Navigate up
+    await user.keyboard('{ArrowUp}');
+    expect(accessibility.focusElement).toHaveBeenCalledWith(items[0]);
+
+    // Wrap around to last item
+    await user.keyboard('{ArrowUp}');
+    expect(accessibility.focusElement).toHaveBeenCalledWith(items[2]);
   });
 
   it('calls onOpen and onClose callbacks', async () => {
@@ -209,19 +243,18 @@ describe('DropdownItem Component', () => {
     expect(onClick).not.toHaveBeenCalled();
   });
 
-  it('applies destructive styling', () => {
+  it('indicates destructive action', () => {
     render(
       <DropdownItem destructive>
         Delete Item
       </DropdownItem>
     );
 
-    const item = screen.getByText('Delete Item');
-    expect(item).toHaveClass('text-red-600');
+    const item = screen.getByRole('menuitem');
+    expect(item).toHaveAttribute('data-destructive', 'true');
   });
 
   it('supports keyboard activation', async () => {
-    const user = userEvent.setup();
     const onClick = vi.fn();
     
     render(
@@ -233,7 +266,7 @@ describe('DropdownItem Component', () => {
     const item = screen.getByText('Keyboard Item');
     item.focus();
     
-    await user.keyboard('{Enter}');
+    fireEvent.keyDown(item, { key: 'Enter', code: 'Enter' });
     expect(onClick).toHaveBeenCalled();
   });
 });
@@ -256,11 +289,21 @@ describe('DropdownHeader Component', () => {
 });
 
 describe('Dropdown Mobile Responsiveness', () => {
+  const originalResponsiveModule = vi.importActual('../../src/utils/responsive.jsx');
+  
   beforeEach(() => {
-    vi.mocked(require('../src/utils/responsive.js').useScreenSize).mockReturnValue({
-      isMobile: true,
-      isTablet: false
-    });
+    vi.doMock('../../src/utils/responsive.jsx', () => ({
+      ...originalResponsiveModule,
+      useScreenSize: () => ({
+        isMobile: true,
+        isTablet: false,
+        isDesktop: false
+      })
+    }));
+  });
+
+  afterEach(() => {
+    vi.resetModules();
   });
 
   it('adapts to mobile layout with fullWidth option', () => {
@@ -286,8 +329,14 @@ describe('Dropdown Mobile Responsiveness', () => {
     const trigger = screen.getByText('Mobile Trigger');
     await user.click(trigger);
 
-    // Should show mobile backdrop (would need to check for backdrop element)
-    expect(screen.getByText('Mobile Item')).toBeInTheDocument();
+    const backdrop = screen.getByTestId('dropdown-backdrop');
+    expect(backdrop).toBeInTheDocument();
+    
+    // Click backdrop should close dropdown
+    await user.click(backdrop);
+    await waitFor(() => {
+      expect(screen.queryByText('Mobile Item')).not.toBeInTheDocument();
+    });
   });
 });
 
@@ -315,10 +364,26 @@ describe('Dropdown Accessibility', () => {
     );
 
     const trigger = screen.getByText('Focus Test');
-    await user.click(trigger);
+    
+    // Initially focus should be manageable on trigger
+    await user.tab();
+    expect(trigger).toHaveFocus();
 
-    // Focus should move to first item when dropdown opens
-    // This would need more detailed focus management testing
-    expect(screen.getByText('First Item')).toBeInTheDocument();
+    // Open dropdown
+    await user.click(trigger);
+    
+    // Focus should move to first menuitem
+    const firstItem = screen.getByRole('menuitem', { name: 'First Item' });
+    await waitFor(() => {
+      expect(accessibility.focusElement).toHaveBeenCalledWith(firstItem);
+    });
+
+    // Close dropdown with Escape
+    await user.keyboard('{Escape}');
+    
+    // Focus should return to trigger
+    await waitFor(() => {
+      expect(accessibility.focusElement).toHaveBeenCalledWith(trigger);
+    });
   });
 });

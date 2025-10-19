@@ -1,61 +1,28 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { UserProvider } from './contexts/UserContext.jsx';
 import { useUser } from './contexts/UserContext';
+import { config, utils, APP_MODE, IS_CENTRALIZED, IS_DEV } from './utils/config.js';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import LoginForm from './components/LoginForm.jsx';
+import RegisterForm from './components/RegisterForm.jsx';
+import PrivateRoute from './components/PrivateRoute.jsx';
+import AthleteUserPage from './pages/AthleteUserPage.jsx';
+import SponsorUserPage from './pages/SponsorUserPage.jsx';
+import FanUserPage from './pages/FanUserPage.jsx';
+import NavigationBar from './components/NavigationBar.jsx';
 
-export default function App() {
-  return (
-    <SafeUserProvider>
-      <SafeRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/test" element={<TestPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </SafeRouter>
-    </SafeUserProvider>
-  );
-}
-
-function HomePage() {
-  const { user, loading } = useUser();
-  
-  return (
-    <div style={{ 
-      padding: '20px', 
-      fontFamily: 'Arial, sans-serif',
-      background: 'linear-gradient(135deg, #ff6f61, #6b48ff)',
-      color: 'white',
-      minHeight: '100vh'
-    }}>
-      <h1>🏠 NILbx - Home Page</h1>
-      <p>Router is working correctly!</p>
-      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '15px', borderRadius: '8px', marginTop: '20px' }}>
-        <h2>✅ Status</h2>
-        <p>UserProvider ✅</p>
-        <p>Router ✅</p>
-        <p>UserContext ✅ {loading ? '(Loading...)' : user ? `(User: ${user.name})` : '(No user)'}</p>
-        <div style={{ marginTop: '10px' }}>
-          <a href="/auth" style={{ color: 'white', marginRight: '10px' }}>Auth Page</a>
-          <a href="/test" style={{ color: 'white', marginRight: '10px' }}>Test Page</a>
-          <a href="/nonexistent" style={{ color: 'white' }}>404 Test</a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
+// Simple test to make sure everything works
 function TestPage() {
   return (
-    <div style={{ 
-      padding: '20px', 
+    <div data-testid="test-page" style={{ 
+      padding: '50px', 
       fontFamily: 'Arial, sans-serif',
-      background: 'linear-gradient(45deg, #2196F3, #21CBF3)',
+      background: 'linear-gradient(135deg, #2196F3, #21CBF3)',
       color: 'white',
-      minHeight: '100vh'
+      minHeight: '100vh',
+      textAlign: 'center'
     }}>
       <h1>🧪 Test Page</h1>
       <p>This is the test route!</p>
@@ -64,467 +31,231 @@ function TestPage() {
   );
 }
 
-function AuthPage() {
-  const { login } = useUser();
-  const [form, setForm] = React.useState({ email: '', password: '' });
-  const [isRegister, setIsRegister] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState('');
-  const [message, setMessage] = React.useState('');
-
-  const API_URL = 'http://localhost:9000/';
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-    setError('');
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setMessage('');
-
-    try {
-      const endpoint = isRegister ? 'register' : 'login';
-      const response = await fetch(`${API_URL}${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(form),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || `${isRegister ? 'Registration' : 'Login'} failed`);
-      }
-
-      if (isRegister) {
-        setMessage('Registration successful! Please log in.');
-        setIsRegister(false);
-        setForm({ email: '', password: '' });
-      } else {
-        await login(data.access_token);
-        window.location.href = '/';
-      }
-    } catch (err) {
-      console.error('Auth error:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
+function HomePage() {
+  const { user, role, isAuthenticated, logout } = useUser();
+  
+  // Get role-based background styles
+  const getRoleBasedBackground = () => {
+    if (!isAuthenticated || !role) {
+      return 'linear-gradient(90deg, #1e3c72, #2a5298)';
+    }
+    
+    switch (role) {
+      case 'athlete':
+        return 'linear-gradient(135deg, #ff6f61, #6b48ff)';
+      case 'sponsor':
+        return 'linear-gradient(90deg, #2c3e50, #3498db)';
+      case 'fan':
+        return 'linear-gradient(135deg, #ff9a9e, #fad0c4)';
+      default:
+        return 'linear-gradient(90deg, #1e3c72, #2a5298)';
     }
   };
 
-  const containerStyle = {
-    minHeight: '100vh',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '20px'
-  };
+  // Log mode and config for debugging
+  React.useEffect(() => {
+    console.log('Current mode:', config.mode);
+    console.log('Auth Service URL:', config.authServiceUrl);
+    console.log('Is Centralized:', config.isCentralized);
+  }, []);
 
-  const cardStyle = {
-    background: 'white',
-    borderRadius: '12px',
-    padding: '40px',
-    boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-    width: '100%',
-    maxWidth: '400px'
-  };
-
-  const inputStyle = {
-    width: '100%',
-    padding: '12px',
-    marginBottom: '16px',
-    border: '2px solid #e1e5e9',
-    borderRadius: '8px',
-    fontSize: '16px',
-    boxSizing: 'border-box'
-  };
-
-  const buttonStyle = {
-    width: '100%',
-    padding: '12px',
-    backgroundColor: loading ? '#ccc' : '#667eea',
-    color: 'white',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '16px',
-    fontWeight: 'bold',
-    cursor: loading ? 'not-allowed' : 'pointer',
-    marginBottom: '16px'
+  const handleLogout = async () => {
+    await logout();
   };
 
   return (
-    <div style={containerStyle}>
-      <div style={cardStyle}>
-        <h1 style={{ textAlign: 'center', marginBottom: '30px', color: '#333', fontSize: '28px' }}>
-          {isRegister ? '🚀 Create Account' : '🔐 Welcome Back'}
-        </h1>
-
-        {error && (
-          <div style={{ color: '#e74c3c', textAlign: 'center', marginBottom: '16px', padding: '8px', backgroundColor: '#fdf2f2', borderRadius: '4px' }}>
-            {error}
-          </div>
-        )}
+    <div data-testid="landing-page" style={{ 
+      padding: '50px', 
+      fontFamily: 'Arial, sans-serif',
+      background: getRoleBasedBackground(),
+      color: 'white',
+      minHeight: '100vh',
+      textAlign: 'center'
+    }}>
+      <h1>🏠 NILbx - Home Page</h1>
+      <p>Welcome to NILbx! Role-based backgrounds are now working!</p>
+      
+      <div style={{ background: 'rgba(255,255,255,0.1)', padding: '20px', borderRadius: '10px', marginTop: '30px' }}>
+        <h2>✅ Status Check</h2>
+        <p>React ✅</p>
+        <p>Router ✅</p>
+        <p>UserContext ✅</p>
+        <div style={{ background: 'rgba(255,255,255,0.1)', padding: '10px', borderRadius: '5px', marginTop: '10px' }}>
+          <p>Mode: <strong>{APP_MODE.toUpperCase()}</strong> {IS_CENTRALIZED ? '⛓️' : '📱'}</p>
+          <p>Environment: <strong>{IS_DEV ? 'DEVELOPMENT 🛠️' : 'PRODUCTION 🚀'}</strong></p>
+          <p>API URL: {config.apiUrl} ✨</p>
+          <p>Auth URL: {config.authServiceUrl} �</p>
+          <p>Features Enabled:</p>
+          <ul style={{ listStyle: 'none', padding: '0' }}>
+            {Object.entries(config.features)
+              .filter(([_, enabled]) => enabled)
+              .map(([name, _]) => (
+                <li key={name} style={{ margin: '2px 0' }}>
+                  ✓ {name}
+                </li>
+              ))}
+          </ul>
+        </div>
         
-        {message && (
-          <div style={{ color: '#16a085', textAlign: 'center', marginBottom: '16px', padding: '8px', backgroundColor: '#f0fdfa', borderRadius: '4px' }}>
-            {message}
+        {isAuthenticated && role ? (
+          <div style={{ marginTop: '15px' }}>
+            <p>🎨 <strong>Role-based Background Active!</strong></p>
+            <p>Welcome back, <strong>{user?.name || user?.email}</strong>!</p>
+            <p>Current Role: <span style={{ 
+              background: role === 'athlete' ? '#ff6f61' : role === 'sponsor' ? '#3498db' : '#ff9a9e',
+              padding: '4px 8px', 
+              borderRadius: '4px',
+              fontWeight: 'bold'
+            }}>{role.charAt(0).toUpperCase() + role.slice(1)}</span></p>
+            
+            <button
+              onClick={handleLogout}
+              style={{
+                background: 'rgba(255, 0, 0, 0.6)',
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                marginTop: '10px'
+              }}
+            >
+              🚪 Logout
+            </button>
           </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <input
-            style={inputStyle}
-            type="email"
-            name="email"
-            placeholder="Email address"
-            value={form.email}
-            onChange={handleInputChange}
-            required
-            disabled={loading}
-          />
-
-          <input
-            style={inputStyle}
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={handleInputChange}
-            required
-            disabled={loading}
-          />
-
-          <button style={buttonStyle} type="submit" disabled={loading}>
-            {loading ? '⏳ Processing...' : (isRegister ? '🚀 Create Account' : '🔑 Sign In')}
-          </button>
-        </form>
-
-        <button
-          style={{ ...buttonStyle, backgroundColor: 'transparent', color: '#667eea', border: '2px solid #667eea' }}
-          type="button"
-          onClick={() => {
-            setIsRegister(!isRegister);
-            setError('');
-            setMessage('');
-            setForm({ email: '', password: '' });
-          }}
-          disabled={loading}
-        >
-          {isRegister ? '👤 Already have an account? Sign In' : '✨ Need an account? Create One'}
-        </button>
-
-        {!isRegister && (
-          <div style={{ textAlign: 'center', marginTop: '16px' }}>
-            <a href="/forgot-password" style={{ color: '#667eea', textDecoration: 'none', fontSize: '14px' }}>
-              🔗 Forgot your password?
+        ) : (
+          <div style={{ marginTop: '15px' }}>
+            <p>👤 Not logged in - using default background</p>
+            <a href="/auth" style={{ 
+              color: 'white', 
+              background: 'rgba(255,255,255,0.2)', 
+              padding: '8px 16px', 
+              borderRadius: '5px', 
+              textDecoration: 'none',
+              display: 'inline-block',
+              marginTop: '10px'
+            }}>
+              Login to see role backgrounds
             </a>
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-
-
-function ForgotPasswordPage() {
-  const [email, setEmail] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
-  const [message, setMessage] = React.useState('');
-  const [error, setError] = React.useState('');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setMessage('');
-
-    try {
-      const response = await fetch('http://localhost:9000/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Failed to send reset email');
-      }
-
-      setMessage('Password reset email sent! Check your inbox.');
-      setEmail('');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div style={{ 
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }}>
-      <div style={{
-        background: 'white',
-        borderRadius: '12px',
-        padding: '40px',
-        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-        width: '100%',
-        maxWidth: '400px'
-      }}>
-        <h1 style={{ textAlign: 'center', marginBottom: '30px', color: '#333', fontSize: '28px' }}>
-          🔗 Reset Password
-        </h1>
-
-        <p style={{ textAlign: 'center', color: '#666', marginBottom: '30px' }}>
-          Enter your email address and we'll send you a link to reset your password.
-        </p>
-
-        {error && (
-          <div style={{ color: '#e74c3c', textAlign: 'center', marginBottom: '16px', padding: '8px', backgroundColor: '#fdf2f2', borderRadius: '4px' }}>
-            {error}
-          </div>
-        )}
         
-        {message && (
-          <div style={{ color: '#16a085', textAlign: 'center', marginBottom: '16px', padding: '8px', backgroundColor: '#f0fdfa', borderRadius: '4px' }}>
-            {message}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <input
-            style={{
-              width: '100%',
-              padding: '12px',
-              marginBottom: '16px',
-              border: '2px solid #e1e5e9',
-              borderRadius: '8px',
-              fontSize: '16px',
-              boxSizing: 'border-box'
-            }}
-            type="email"
-            placeholder="Your email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={loading}
-          />
-
-          <button
-            style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: loading ? '#ccc' : '#ff6b6b',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              marginBottom: '16px'
-            }}
-            type="submit"
-            disabled={loading}
-          >
-            {loading ? '⏳ Sending...' : '📧 Send Reset Email'}
-          </button>
-        </form>
-
-        <div style={{ textAlign: 'center' }}>
-          <a href="/auth" style={{ color: '#ff6b6b', textDecoration: 'none', fontSize: '14px' }}>
-            ← Back to Login
-          </a>
+        <div style={{ marginTop: '20px' }}>
+          <a href="/test" style={{ color: 'white', marginRight: '15px' }}>Test Page</a>
+          <a href="/auth" style={{ color: 'white' }}>Auth Page</a>
         </div>
       </div>
     </div>
   );
 }
 
-function ResetPasswordPage() {
-  const [password, setPassword] = React.useState('');
-  const [confirmPassword, setConfirmPassword] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
-  const [message, setMessage] = React.useState('');
-  const [error, setError] = React.useState('');
+function AuthPage() {
+  const [mode, setMode] = useState('login'); // 'login' or 'register'
+  const [message, setMessage] = useState('');
+  const [authStatus, setAuthStatus] = useState(null);
 
-  // Get token from URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get('token');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-    setMessage('');
-
-    try {
-      const response = await fetch('http://localhost:9000/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, new_password: password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Failed to reset password');
+  // Check auth service status on mount
+  useEffect(() => {
+    const checkAuthService = async () => {
+      try {
+        const status = await utils.checkServiceHealth('Auth Service', config.authServiceUrl);
+        setAuthStatus(status);
+        if (status.status !== 'healthy') {
+          setMessage('Warning: Auth service may be unavailable');
+        }
+      } catch (error) {
+        console.error('Auth service check failed:', error);
+        setMessage('Error: Could not connect to auth service');
       }
+    };
+    checkAuthService();
+  }, []);
 
-      setMessage('Password reset successful! You can now login with your new password.');
-      setPassword('');
-      setConfirmPassword('');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  const handleLoginSuccess = (result) => {
+    setMessage(`Welcome back! Redirecting to home...`);
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 2000);
   };
 
-  if (!token) {
-    return (
-      <div style={{ 
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #f44336, #ff9800)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px'
-      }}>
-        <div style={{ textAlign: 'center', color: 'white' }}>
-          <h1>❌ Invalid Reset Link</h1>
-          <p>This password reset link is invalid or has expired.</p>
-          <a href="/forgot-password" style={{ color: 'white', textDecoration: 'underline' }}>
-            Request a new reset link
-          </a>
-        </div>
-      </div>
-    );
-  }
+  const handleRegisterSuccess = (result) => {
+    setMessage('Registration successful! Please log in.');
+    setMode('login');
+  };
+
+  const getBackground = () => {
+    return mode === 'login' 
+      ? 'linear-gradient(135deg, #4CAF50, #45a049)'
+      : 'linear-gradient(135deg, #2196F3, #1976D2)';
+  };
 
   return (
-    <div style={{ 
+    <div data-testid="auth-page" style={{ 
+      padding: '50px', 
+      fontFamily: 'Arial, sans-serif',
+      background: getBackground(),
+      color: 'white',
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
+      textAlign: 'center'
     }}>
-      <div style={{
-        background: 'white',
-        borderRadius: '12px',
-        padding: '40px',
-        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-        width: '100%',
-        maxWidth: '400px'
-      }}>
-        <h1 style={{ textAlign: 'center', marginBottom: '30px', color: '#333', fontSize: '28px' }}>
-          🔑 New Password
-        </h1>
-
-        {error && (
-          <div style={{ color: '#e74c3c', textAlign: 'center', marginBottom: '16px', padding: '8px', backgroundColor: '#fdf2f2', borderRadius: '4px' }}>
-            {error}
-          </div>
-        )}
+      <div style={{ maxWidth: '500px', margin: '0 auto' }}>
+        <h1>🔐 {mode === 'login' ? 'Login' : 'Register'}</h1>
         
         {message && (
-          <div style={{ color: '#16a085', textAlign: 'center', marginBottom: '16px', padding: '8px', backgroundColor: '#f0fdfa', borderRadius: '4px' }}>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.2)',
+            padding: '15px',
+            borderRadius: '10px',
+            marginBottom: '20px'
+          }}>
             {message}
-            <div style={{ marginTop: '10px' }}>
-              <a href="/auth" style={{ color: '#16a085', textDecoration: 'underline' }}>
-                Go to Login
-              </a>
-            </div>
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <input
-            style={{
-              width: '100%',
-              padding: '12px',
-              marginBottom: '16px',
-              border: '2px solid #e1e5e9',
-              borderRadius: '8px',
-              fontSize: '16px',
-              boxSizing: 'border-box'
-            }}
-            type="password"
-            placeholder="New password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={loading}
+        {mode === 'login' ? (
+          <LoginForm 
+            onSuccess={handleLoginSuccess}
+            onCancel={() => window.location.href = '/'}
           />
-
-          <input
-            style={{
-              width: '100%',
-              padding: '12px',
-              marginBottom: '16px',
-              border: '2px solid #e1e5e9',
-              borderRadius: '8px',
-              fontSize: '16px',
-              boxSizing: 'border-box'
-            }}
-            type="password"
-            placeholder="Confirm new password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            disabled={loading}
+        ) : (
+          <RegisterForm 
+            onSuccess={handleRegisterSuccess}
+            onCancel={() => window.location.href = '/'}
           />
+        )}
 
+        <div style={{ marginTop: '20px' }}>
           <button
-            style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: loading ? '#ccc' : '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              marginBottom: '16px'
+            onClick={() => {
+              setMode(mode === 'login' ? 'register' : 'login');
+              setMessage('');
             }}
-            type="submit"
-            disabled={loading}
+            style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              color: 'white',
+              border: '1px solid rgba(255,255,255,0.3)',
+              padding: '10px 20px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              marginRight: '10px'
+            }}
           >
-            {loading ? '⏳ Updating...' : '🔐 Update Password'}
+            {mode === 'login' ? '📝 Need an account? Register' : '🔑 Have an account? Login'}
           </button>
-        </form>
-
-        <div style={{ textAlign: 'center' }}>
-          <a href="/auth" style={{ color: '#4CAF50', textDecoration: 'none', fontSize: '14px' }}>
-            ← Back to Login
-          </a>
+          
+          <button
+            onClick={() => window.location.href = '/'}
+            style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              color: 'white',
+              border: '1px solid rgba(255,255,255,0.3)',
+              padding: '10px 20px',
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            ← Back to Home
+          </button>
         </div>
       </div>
     </div>
@@ -534,11 +265,12 @@ function ResetPasswordPage() {
 function NotFoundPage() {
   return (
     <div style={{ 
-      padding: '20px', 
+      padding: '50px', 
       fontFamily: 'Arial, sans-serif',
       background: 'linear-gradient(45deg, #f44336, #ff9800)',
       color: 'white',
-      minHeight: '100vh'
+      minHeight: '100vh',
+      textAlign: 'center'
     }}>
       <h1>404 - Page Not Found</h1>
       <p>The page you're looking for doesn't exist.</p>
@@ -547,6 +279,7 @@ function NotFoundPage() {
   );
 }
 
+// Safe provider wrapper
 function SafeUserProvider({ children }) {
   try {
     return <UserProvider>{children}</UserProvider>;
@@ -558,4 +291,41 @@ function SafeUserProvider({ children }) {
       </div>
     );
   }
+}
+
+export default function App() {
+  return (
+    <SafeUserProvider>
+      <div data-testid="gamification-provider">
+        <div data-testid="toast-provider">
+          <NavigationBar />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/test" element={<TestPage />} />
+            
+            {/* Role-specific dashboards */}
+            <Route path="/dashboard/athlete" element={
+              <PrivateRoute role="athlete">
+                <AthleteUserPage />
+              </PrivateRoute>
+            } />
+            <Route path="/dashboard/sponsor" element={
+              <PrivateRoute role="sponsor">
+                <SponsorUserPage />
+              </PrivateRoute>
+            } />
+            <Route path="/dashboard/fan" element={
+              <PrivateRoute role="fan">
+                <FanUserPage />
+              </PrivateRoute>
+            } />
+            
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </div>
+        <ToastContainer />
+      </div>
+    </SafeUserProvider>
+  );
 }
