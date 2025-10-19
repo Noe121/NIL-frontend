@@ -21,7 +21,7 @@ axios.interceptors.request.use(
 // Safe Router wrapper to catch router errors
 function SafeRouter({ children }) {
   try {
-    return <BrowserRouter>{children}</BrowserRouter>;
+    return <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>{children}</BrowserRouter>;
   } catch (error) {
     console.error('Router error:', error);
     return (

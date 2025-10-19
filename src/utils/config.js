@@ -15,11 +15,17 @@ const getEnvVar = (key, fallback = null) => {
         return 'centralized';
       }
     }
-    return import.meta?.env?.[key] ?? fallback;
+    const value = import.meta?.env?.[key];
+    console.log(`🔍 getEnvVar(${key}):`, value, 'fallback:', fallback);
+    return value ?? fallback;
   } catch (error) {
+    console.log(`❌ getEnvVar error for ${key}:`, error);
     return fallback;
   }
 };
+
+// Debug: log all VITE env vars
+console.log('🔍 All VITE env vars:', Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')));
 
 // Environment detection with more robust fallbacks
 export const APP_MODE = (() => {
@@ -53,7 +59,7 @@ const getApiConfig = () => {
     
     // API Endpoints with environment-aware fallbacks
     apiUrl: getEnvVar('VITE_API_URL') || (IS_CENTRALIZED 
-      ? (IS_PROD ? 'https://dev-nilbx-alb-961031935.us-east-1.elb.amazonaws.com' : 'http://localhost:8001')
+      ? (IS_PROD ? 'https://dev-nilbx-alb-961031935.us-east-1.elb.amazonaws.com' : 'http://localhost:8000')
       : 'http://localhost:8002'),
     authServiceUrl: getEnvVar('VITE_AUTH_SERVICE_URL') || (IS_PROD 
       ? 'https://auth.nilbx.com' 

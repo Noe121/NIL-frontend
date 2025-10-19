@@ -22,7 +22,7 @@
     "dev": "vite",
     "build": "vite build",
     "dev:standalone": "cp .env.standalone .env && vite --port 5173 --mode standalone",
-    "dev:centralized": "cp .env.centralized .env && NODE_ENV=development VITE_MODE=centralized vite --port 5174 --mode centralized",
+    "dev:centralized": "cp .env.centralized .env.local && VITE_MODE=centralized vite --port 5174 --mode centralized",
     "build:standalone": "cp .env.standalone .env && vite build --mode standalone",
     "build:centralized": "cp .env.centralized .env && vite build --mode centralized",
     "preview:standalone": "cp .env.standalone .env && vite preview --port 4173",

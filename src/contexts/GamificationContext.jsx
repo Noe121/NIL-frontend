@@ -308,15 +308,15 @@ export const GamificationProvider = ({ children }) => {
 
   // Initialize user on first login
   useEffect(() => {
-    if (user && userStats.achievements.length === 0) {
+    if (user && userStats.achievements.length === 0 && !userStats.lastLogin) {
       setTimeout(() => {
         unlockAchievement('first_login');
         updateStreak();
       }, 1000);
-    } else if (user) {
+    } else if (user && !userStats.lastLogin) {
       updateStreak();
     }
-  }, [user]);
+  }, [user, userStats.lastLogin]);
 
   const value = {
     userStats,
