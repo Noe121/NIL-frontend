@@ -1,7 +1,7 @@
 
 # NILbx Frontend 🏆
 
-A modern React/Vite frontend for the NILbx platform - connecting athletes, sponsors, and fans through Name, Image, and Likeness (NIL) deals. Features secure JWT authentication, dual-mode operation (standalone/centralized), blockchain integration, and cloud deployment on AWS.
+A modern React/Vite frontend for the NILbx platform - connecting athletes, sponsors, and fans through Name, Image, and Likeness (NIL) deals. Features secure JWT authentication, per-service architecture integration, blockchain integration, and cloud deployment on AWS.
 
 **Live Demo**: [https://nilbx.com](https://nilbx.com) ✅
 
@@ -15,11 +15,11 @@ This frontend integrates with microservices backend APIs and is hosted staticall
 - **Complete Reset Flow**: Email-based password reset with secure token validation
 - **Role-Based Access**: Athlete, sponsor, and fan role management
 
-### 🌐 Dual-Mode Operation
-- **Standalone Mode**: Local development with independent services
-- **Centralized Mode**: AWS infrastructure integration with shared services
+### 🌐 Per-Service Architecture Integration
+- **Per-Service Mode**: Communicates with independent microservices via HTTP APIs
+- **Cross-Service Communication**: JWT-validated requests between services
 - **Dynamic Configuration**: Automatic environment detection and setup
-- **Feature Flags**: Mode-specific feature enablement
+- **Feature Flags**: Service-specific feature enablement
 
 ### ⛓️ Blockchain Integration
 - **Web3 Wallet Support**: MetaMask and WalletConnect integration
@@ -277,7 +277,7 @@ Deploy locally for development and testing:
 
 ```bash
 # Build for local development
-npm run build:centralized
+npm run build:per-service
 
 # Serve locally with preview server
 npx vite preview --port 4173
@@ -304,7 +304,7 @@ Deploy to AWS infrastructure with CloudFront CDN:
 
 ```bash
 # 1. Build optimized production bundle
-npm run build:centralized
+npm run build:per-service
 
 # 2. Deploy to S3 bucket
 aws s3 cp dist/ s3://dev-nilbx-frontend/ --recursive --acl public-read
@@ -386,7 +386,7 @@ curl https://company.nilbx.com/health
 # deploy-aws.sh
 
 # Build production bundle
-npm run build:centralized
+npm run build:per-service
 
 # Deploy to S3
 aws s3 cp dist/ s3://dev-nilbx-frontend/ --recursive --acl public-read
