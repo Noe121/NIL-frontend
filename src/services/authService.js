@@ -7,7 +7,7 @@ import { config } from '../utils/config.js';
 
 class AuthService {
   constructor() {
-    this.baseUrl = '/auth/api';  // Use proxy path
+    this.baseUrl = config.authServiceUrl;  // Use full URL from config instead of proxy path
     this.tokenKey = config.auth.storageKey;
     this.sessionTimeout = config.auth.sessionTimeout;
   }

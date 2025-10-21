@@ -8,11 +8,11 @@ import React from 'react';
 const getEnvVar = (key, fallback = null) => {
   try {
     if (key === 'VITE_MODE') {
-      // Force centralized mode in development
+      // Force per-service mode in development
       const isDev = import.meta?.env?.DEV || process.env.NODE_ENV === 'development';
       if (isDev) {
-        console.log('🚀 Running in development centralized mode');
-        return 'centralized';
+        console.log('🚀 Running in development per-service mode');
+        return 'per-service';
       }
     }
     const value = import.meta?.env?.[key];
@@ -36,6 +36,7 @@ export const APP_MODE = (() => {
 
 export const IS_STANDALONE = APP_MODE === 'standalone';
 export const IS_CENTRALIZED = APP_MODE === 'centralized';
+export const IS_PER_SERVICE = APP_MODE === 'per-service';
 
 // Development/Production detection with multiple checks
 export const IS_DEV = (() => {
@@ -54,19 +55,20 @@ const getApiConfig = () => {
     mode: APP_MODE,
     isStandalone: IS_STANDALONE,
     isCentralized: IS_CENTRALIZED,
+    isPerService: IS_PER_SERVICE,
     isDev: IS_DEV,
     isProd: IS_PROD,
     
     // API Endpoints with environment-aware fallbacks
-    apiUrl: getEnvVar('VITE_API_URL') || (IS_CENTRALIZED 
-      ? (IS_PROD ? 'https://dev-nilbx-alb-961031935.us-east-1.elb.amazonaws.com' : 'http://localhost:8000')
-      : 'http://localhost:8002'),
-    authServiceUrl: getEnvVar('VITE_AUTH_SERVICE_URL') || (IS_PROD 
-      ? 'https://auth.nilbx.com' 
-      : 'http://localhost:9000'),
-    companyApiUrl: getEnvVar('VITE_COMPANY_API_URL') || (IS_PROD
-      ? 'https://company.nilbx.com'
-      : 'http://localhost:8002'),
+    apiUrl: IS_PROD 
+      ? (getEnvVar('VITE_API_URL') || 'https://yt896q3bx4.execute-api.us-east-1.amazonaws.com/prod')
+      : (getEnvVar('VITE_API_URL') || (IS_CENTRALIZED ? 'http://localhost:8000' : IS_PER_SERVICE ? 'http://localhost:8001' : 'http://localhost:8002')),
+    authServiceUrl: IS_PROD 
+      ? (getEnvVar('VITE_AUTH_SERVICE_URL') || 'https://yt896q3bx4.execute-api.us-east-1.amazonaws.com/prod/auth')
+      : (getEnvVar('VITE_AUTH_SERVICE_URL') || 'http://localhost:9000'),
+    companyApiUrl: IS_PROD 
+      ? (getEnvVar('VITE_COMPANY_API_URL') || 'https://yt896q3bx4.execute-api.us-east-1.amazonaws.com/prod/api/company')
+      : (getEnvVar('VITE_COMPANY_API_URL') || 'http://localhost:8002'),
     
     // Blockchain configuration (centralized mode only)
     blockchainServiceUrl: IS_CENTRALIZED 
@@ -99,7 +101,8 @@ const getApiConfig = () => {
       socialIntegration: getEnvVar('VITE_ENABLE_SOCIAL_INTEGRATION') !== 'false',
       crossServiceCommunication: IS_CENTRALIZED && (getEnvVar('VITE_ENABLE_CROSS_SERVICE_COMMUNICATION') === 'true'),
       realTimeUpdates: IS_CENTRALIZED && (getEnvVar('VITE_ENABLE_REAL_TIME_UPDATES') === 'true'),
-      roleSwitch: getEnvVar('VITE_ENABLE_ROLE_SWITCHING') !== 'false'
+      roleSwitch: getEnvVar('VITE_ENABLE_ROLE_SWITCHING') !== 'false',
+      perServiceDatabases: IS_PER_SERVICE
     },
     
     // Authentication settings
@@ -120,8 +123,8 @@ const getApiConfig = () => {
     // Development settings
     dev: {
       enableMockData: IS_DEV && (getEnvVar('VITE_ENABLE_MOCK_DATA') === 'true'),
-      port: IS_CENTRALIZED ? 5174 : 5173,
-      previewPort: IS_CENTRALIZED ? 4174 : 4173
+      port: IS_CENTRALIZED ? 5174 : IS_PER_SERVICE ? 5175 : 5173,
+      previewPort: IS_CENTRALIZED ? 4174 : IS_PER_SERVICE ? 4175 : 4173
     }
   };
   
@@ -268,6 +271,7 @@ export const utils = {
   // Mode detection helpers
   isStandalone: () => IS_STANDALONE,
   isCentralized: () => IS_CENTRALIZED,
+  isPerService: () => IS_PER_SERVICE,
   hasFeature: (featureName) => config.features[featureName] || false,
   
   // Storage helpers

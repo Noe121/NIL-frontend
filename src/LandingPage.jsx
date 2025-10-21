@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from './contexts/UserContext.jsx';
 import RoleDemo from './components/RoleDemo.jsx';
 import axios from 'axios';
+import { config } from './utils/config.js';
 export default function LandingPage() {
   const { user, role, isAuthenticated } = useUser();
   const [athletes, setAthletes] = useState([]);
@@ -14,7 +15,7 @@ export default function LandingPage() {
   const [loadingSubmit, setLoadingSubmit] = useState(false);
 
   // TODO: Replace with your ALB DNS or use env variable
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/';
+  const apiUrl = config.apiUrl;
 
   // Get role-based background styles
   const getRoleBasedBackground = () => {

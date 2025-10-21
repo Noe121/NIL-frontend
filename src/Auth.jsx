@@ -4,8 +4,7 @@ import { useUser } from './contexts/UserContext.jsx';
 import FormField from './components/FormField.jsx';
 import Button from './components/Button.jsx';
 import { validators } from './utils/validation.js';
-
-const API_URL = process.env.REACT_APP_AUTH_SERVICE_URL || 'http://localhost:9000/';
+import { config } from './utils/config.js';
 
 export default function Auth() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -41,7 +40,7 @@ export default function Auth() {
     }
 
     try {
-      const response = await fetch(`${API_URL}login`, {
+      const response = await fetch(`${config.authServiceUrl}login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

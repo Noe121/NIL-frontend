@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
-const API_URL = process.env.REACT_APP_AUTH_SERVICE_URL || 'http://localhost:9000/';
+import { config } from './utils/config.js';
 
 export default function Register() {
   const [form, setForm] = useState({ email: '', password: '', role: 'athlete' });
@@ -19,7 +18,7 @@ export default function Register() {
     setError('');
     setSuccess(false);
     try {
-      await axios.post(`${API_URL}register`, {
+      await axios.post(`${config.authServiceUrl}register`, {
         email: form.email,
         password: form.password,
         role: form.role,

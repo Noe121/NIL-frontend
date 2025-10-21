@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext.jsx';
 import LoadingSpinner from './LoadingSpinner.jsx';
+import { config } from '../utils/config.js';
 
 const SearchComponent = ({ 
   placeholder = 'Search...', 
@@ -103,7 +104,6 @@ const SearchComponent = ({
   const performSearch = async (searchQuery) => {
     setLoading(true);
     try {
-      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
       const params = new URLSearchParams({
         q: searchQuery,
         type: filters.type,
@@ -112,7 +112,7 @@ const SearchComponent = ({
         ...(filters.priceRange !== 'all' && { priceRange: filters.priceRange })
       });
 
-      const response = await fetch(`${API_URL}${searchEndpoint}?${params}`, {
+      const response = await fetch(`${config.apiUrl}${searchEndpoint}?${params}`, {
         headers: {
           'Authorization': user?.token ? `Bearer ${user.token}` : '',
           'Content-Type': 'application/json'

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-
-const API_BASE_URL = "http://localhost:8080";
+import { config } from './utils/config.js';
 
 export default function ApiDemo() {
   const [athletes, setAthletes] = useState([]);
@@ -10,14 +9,14 @@ export default function ApiDemo() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/athletes`)
+    fetch(`${config.apiUrl}athletes`)
       .then(res => res.json())
       .then(data => setAthletes(data.athletes || []));
   }, []);
 
   const handleRegister = e => {
     e.preventDefault();
-    fetch(`${API_BASE_URL}/athletes`, {
+    fetch(`${config.apiUrl}athletes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, sport, email })
@@ -26,7 +25,7 @@ export default function ApiDemo() {
       .then(data => {
         setMessage(data.message || "");
         // Refresh list
-        fetch(`${API_BASE_URL}/athletes`)
+        fetch(`${config.apiUrl}athletes`)
           .then(res => res.json())
           .then(data => setAthletes(data.athletes || []));
       });

@@ -5,6 +5,7 @@ import { useUser } from '../contexts/UserContext.jsx';
 import FormField from '../components/FormField.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import { validators, validateForm } from '../utils/validation.js';
+import { config } from '../utils/config.js';
 
 const MultiStepRegister = () => {
   const navigate = useNavigate();
@@ -127,9 +128,7 @@ const MultiStepRegister = () => {
     setSubmitError('');
     
     try {
-      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-      
-      const response = await fetch(`${API_URL}/register`, {
+      const response = await fetch(`${config.apiUrl}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

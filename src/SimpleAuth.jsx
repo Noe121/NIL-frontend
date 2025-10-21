@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from './contexts/UserContext.jsx';
-
-const API_URL = process.env.REACT_APP_AUTH_SERVICE_URL || 'http://localhost:9000/';
+import { config } from './utils/config.js';
 
 export default function SimpleAuth() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -27,7 +26,7 @@ export default function SimpleAuth() {
 
     try {
       const endpoint = isRegister ? 'register' : 'login';
-      const response = await fetch(`${API_URL}${endpoint}`, {
+      const response = await fetch(`${config.authServiceUrl}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

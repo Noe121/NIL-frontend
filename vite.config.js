@@ -13,12 +13,21 @@ export default defineConfig(({ command, mode }) => {
   const appMode = process.env.VITE_MODE || env.VITE_MODE || 'standalone';
   const isDev = command === 'serve' || process.env.NODE_ENV === 'development';
   
+  // For production builds, force load production environment variables
+  const isProductionBuild = command === 'build' && mode === 'production';
+  let finalEnv = env;
+  if (isProductionBuild) {
+    finalEnv = loadEnv('production', process.cwd(), '');
+    console.log('🔧 Production build detected, loading production env vars');
+  }
+  
   // Log configuration
   console.log('🔧 Building config with:', {
     command,
     mode: appMode,
     isDev,
-    NODE_ENV: process.env.NODE_ENV
+    NODE_ENV: process.env.NODE_ENV,
+    isProductionBuild
   });
   
   // Dual-mode configuration: check if mode === 'standalone' or 'centralized'
@@ -108,8 +117,7 @@ export default defineConfig(({ command, mode }) => {
       outDir: `dist-${appMode}`,
       rollupOptions: {
         input: {
-          main: './index.html', // React app as main entry
-          static: './index-static.html' // Static landing as alternative
+          main: './index.html' // React app as main entry
         },
         output: {
           manualChunks: {
@@ -117,7 +125,7 @@ export default defineConfig(({ command, mode }) => {
             vendor: ['react', 'react-dom', 'react-router-dom'],
             // Separate chunk for blockchain-related code (centralized mode)
             ...(appMode === 'centralized' && {
-              blockchain: ['web3', 'ethers'] // If these dependencies are added
+              blockchain: [] // Empty for now - add when blockchain deps are installed
             })
           }
         }
@@ -131,7 +139,15 @@ export default defineConfig(({ command, mode }) => {
     // Environment variable handling
     define: {
       __APP_MODE__: JSON.stringify(appMode),
-      __BUILD_TIME__: JSON.stringify(new Date().toISOString())
+      __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+      // Force production URLs when building for production
+      ...(isProductionBuild ? {
+        'import.meta.env.VITE_API_URL': JSON.stringify(finalEnv.VITE_API_URL || 'https://sd7zgk0gz5.execute-api.us-east-1.amazonaws.com/prod'),
+        'import.meta.env.VITE_AUTH_SERVICE_URL': JSON.stringify(finalEnv.VITE_AUTH_SERVICE_URL || 'https://sd7zgk0gz5.execute-api.us-east-1.amazonaws.com/prod/auth'),
+        'import.meta.env.VITE_COMPANY_API_URL': JSON.stringify(finalEnv.VITE_COMPANY_API_URL || 'https://sd7zgk0gz5.execute-api.us-east-1.amazonaws.com/prod/api/company'),
+        'import.meta.env.VITE_ENVIRONMENT': JSON.stringify('production'),
+        'import.meta.env.VITE_DEBUG_MODE': JSON.stringify('false'),
+      } : {})
     },
     
     // CSS configuration

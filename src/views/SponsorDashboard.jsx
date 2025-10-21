@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/';
+import { config } from '../utils/config.js';
 
 export default function SponsorDashboard() {
   const [budget, setBudget] = useState(null);
@@ -13,12 +12,12 @@ export default function SponsorDashboard() {
     async function fetchData() {
       try {
   // Fetch sponsor profile and budget
-  const sponsorsResp = await axios.get(`${API_URL}sponsors`);
+  const sponsorsResp = await axios.get(`${config.apiUrl}sponsors`);
   setBudget(sponsorsResp.data.sponsors[0]?.budget || 0);
   // Example: Fetch sponsorships and recommendations (if endpoints exist)
-  // const sponsorshipsResp = await axios.get(`${API_URL}sponsorships`);
+  // const sponsorshipsResp = await axios.get(`${config.apiUrl}sponsorships`);
   // setActiveSponsorships(sponsorshipsResp.data.sponsorships || []);
-  // const recResp = await axios.get(`${API_URL}athletes`);
+  // const recResp = await axios.get(`${config.apiUrl}athletes`);
   // setRecommendations(recResp.data.athletes || []);
       } catch (err) {
         // Handle error

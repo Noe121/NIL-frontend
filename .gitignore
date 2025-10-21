@@ -11,6 +11,8 @@ node_modules/
 /dist/
 /build/
 /out/
+dist/
+dist-centralized/
 
 # Environment Files (Security Critical)
 .env
@@ -30,6 +32,7 @@ reset-tokens.json
 # Infrastructure Outputs
 NILbx-env/outputs.json
 endpoints.json
+terraform.tfstate
 
 # Secrets and Keys (Security Critical)
 AUTH_SECRET_KEY
@@ -62,6 +65,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+frontend.log
+server.log
+nohup.out
 
 # Editor and IDE
 .vscode/

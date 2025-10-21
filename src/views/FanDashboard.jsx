@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/';
+import { config } from '../utils/config.js';
 
 export default function FanDashboard() {
   const [favorites, setFavorites] = useState([]);
@@ -13,12 +12,12 @@ export default function FanDashboard() {
     async function fetchData() {
       try {
   // Fetch fan profile and favorites
-  const fansResp = await axios.get(`${API_URL}fans`);
+  const fansResp = await axios.get(`${config.apiUrl}fans`);
   setFavorites(fansResp.data.fans[0]?.favorite_athletes || []);
   // Example: Fetch new content and deals (if endpoints exist)
-  // const contentResp = await axios.get(`${API_URL}fan-content`);
+  // const contentResp = await axios.get(`${config.apiUrl}fan-content`);
   // setNewContent(contentResp.data.content || []);
-  // const dealsResp = await axios.get(`${API_URL}fan-deals`);
+  // const dealsResp = await axios.get(`${config.apiUrl}fan-deals`);
   // setDeals(dealsResp.data.deals || []);
       } catch (err) {
         // Handle error

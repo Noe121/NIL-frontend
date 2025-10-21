@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/';
+import { config } from '../utils/config.js';
 
 export default function AthleteDashboard() {
   const [stats, setStats] = useState(null);
@@ -12,10 +11,10 @@ export default function AthleteDashboard() {
     async function fetchData() {
       try {
   // Fetch athlete profile and stats
-  const athletesResp = await axios.get(`${API_URL}athletes`);
+  const athletesResp = await axios.get(`${config.apiUrl}athletes`);
   setStats(athletesResp.data.athletes[0]?.stats || {});
   // Example: Fetch sponsorships (if endpoint exists)
-  // const sponsorshipsResp = await axios.get(`${API_URL}sponsorships`);
+  // const sponsorshipsResp = await axios.get(`${config.apiUrl}sponsorships`);
   // setSponsorships(sponsorshipsResp.data.sponsorships || []);
       } catch (err) {
         // Handle error

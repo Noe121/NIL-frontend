@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/';
+import { config } from './utils/config.js';
 
 export default function UserInfo() {
   const [user, setUser] = useState(null);
@@ -10,7 +9,7 @@ export default function UserInfo() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const resp = await axios.get(`${API_URL}me`);
+        const resp = await axios.get(`${config.apiUrl}me`);
         setUser(resp.data);
       } catch (err) {
         setError('Could not fetch user info');
