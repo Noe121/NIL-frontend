@@ -30,6 +30,11 @@ const ProfileEditPage = lazy(() => import('./pages/ProfileEditPage.jsx'));
 const HelpCenterPage = lazy(() => import('./pages/HelpCenterPage.jsx'));
 const ErrorPage = lazy(() => import('./pages/ErrorPage.jsx'));
 
+// Payment System Pages
+const CreateDeal = lazy(() => import('./pages/CreateDeal.jsx'));
+const ClaimDeal = lazy(() => import('./pages/ClaimDeal.jsx'));
+const FutureDeals = lazy(() => import('./pages/FutureDeals.jsx'));
+
 // Components
 import NavBar from './components/NavBar.jsx';
 
@@ -103,10 +108,20 @@ export default function App() {
               </ProtectedRoute>
             } />
 
-            {/* Popular Pages - Available to all authenticated users */}
-            <Route path="/marketplace" element={
-              <ProtectedRoute>
-                <MarketplacePage />
+            {/* Payment System Routes */}
+            <Route path="/create-deal" element={
+              <ProtectedRoute role="sponsor">
+                <CreateDeal />
+              </ProtectedRoute>
+            } />
+            <Route path="/claim-deal/:dealId" element={
+              <ProtectedRoute role="athlete">
+                <ClaimDeal />
+              </ProtectedRoute>
+            } />
+            <Route path="/future-deals" element={
+              <ProtectedRoute role="athlete">
+                <FutureDeals />
               </ProtectedRoute>
             } />
             <Route path="/community" element={

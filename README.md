@@ -27,11 +27,13 @@ This frontend integrates with microservices backend APIs and is hosted staticall
 - **Smart Contracts**: Sponsorship contract interactions
 - **Ethereum Networks**: Support for mainnet and test networks
 
-### 💳 Payment Integration
-- **Flexible Payment System**: Launch with traditional providers (PayPal, Stripe) and blockchain
+### 💳 Viral Payment System
+- **Complete Deal Management**: Create, claim, and manage NIL deals with Stripe integration
+- **20% Service Fee Model**: Transparent fee structure with athlete payouts
+- **Future Deal Pre-signing**: Early commitment system for upcoming NIL opportunities
 - **Feature Flag Control**: Safe rollout of payment methods without disrupting users
 - **Payment Processors**: Abstracted architecture for easy provider switching
-- **Launch Strategy**: Traditional payments at launch, blockchain added post-launch
+- **Deal Pages**: Dedicated CreateDeal, ClaimDeal, and FutureDeals pages
 
 #### Payment Feature Flags
 - `VITE_ENABLE_TRADITIONAL_PAYMENTS=true`: Enables PayPal and Stripe payment options
@@ -108,6 +110,8 @@ The application uses `.env.local` for environment variables in per-service mode:
 VITE_API_URL=http://localhost:8001            # API Service
 VITE_AUTH_SERVICE_URL=http://localhost:9000   # Auth Service
 VITE_COMPANY_API_URL=http://localhost:8002    # Company API
+VITE_FEATURE_FLAG_URL=http://localhost:8004   # Feature Flag Service
+VITE_PAYMENT_SERVICE_URL=http://localhost:8005 # Payment Service
 VITE_BLOCKCHAIN_SERVICE_URL=http://localhost:8003  # Blockchain service
 
 # Feature Flags
@@ -158,7 +162,10 @@ frontend/
 │   │   ├── AthleteUserPage.jsx
 │   │   ├── SponsorUserPage.jsx
 │   │   └── FanUserPage.jsx
-│   └── pages/             # Route-based page components
+│   ├── pages/             # Route-based page components
+│   │   ├── CreateDeal.jsx     # Deal creation with Stripe checkout
+│   │   ├── ClaimDeal.jsx      # Deal claiming for athletes
+│   │   └── FutureDeals.jsx    # Future deal pre-signing
 ├── public/                # Static assets
 ├── tests/                 # Test files (390+ tests)
 │   ├── components/        # Component unit tests
@@ -176,6 +183,8 @@ frontend/
 - **API Service**: http://localhost:8001 ✅ (Running - Per-Service DB)
 - **Auth Service**: http://localhost:9000 ✅ (Running - Per-Service DB)
 - **Company API**: http://localhost:8002 ✅ (Running - Per-Service DB)
+- **Feature Flag Service**: http://localhost:8004 ✅ (Running - Feature Flags)
+- **Payment Service**: http://localhost:8005 ✅ (Running - Payment Processing)
 - **Blockchain Service**: http://localhost:8545 ❌ (Not running locally)
 
 ### Production Endpoints (AWS)
@@ -183,13 +192,18 @@ frontend/
 - **API Service**: https://dev-nilbx-alb-961031935.us-east-1.elb.amazonaws.com
 - **Auth Service**: https://auth.nilbx.com
 - **Company API**: https://company.nilbx.com
+- **Feature Flag Service**: https://feature-flags.nilbx.com
+- **Payment Service**: https://payments.nilbx.com
 - **Blockchain Service**: https://blockchain.nilbx.com
 
 ### Backend Integration
-The frontend connects to three microservices with per-service databases:
-- **API Service** (`api-service`): Main application API on port 8001 with `api_db`
+The frontend connects to six microservices with per-service databases:
+- **API Service** (`api-service`): Main application API on port 8001 with `nilbx_db`
 - **Auth Service** (`auth-service`): JWT authentication on port 9000 with `auth_db`
-- **Company API** (`company-api`): Company management on port 8002 with `company_db`
+- **Company API** (`company-api`): Company management on port 8002 with `nilbx_db`
+- **Feature Flag Service** (`feature-flag-service`): Feature toggles on port 8004 with `feature_flags_db`
+- **Payment Service** (`payment-service`): Payment processing on port 8005 with `nilbx_db`
+- **Blockchain Service** (`blockchain-service`): Web3 integration on port 8545
 
 All services are deployed on **AWS ECS Fargate** behind an **Application Load Balancer**.
 
@@ -198,6 +212,8 @@ All services are deployed on **AWS ECS Fargate** behind an **Application Load Ba
 ✅ API Service: Healthy (http://localhost:8001/health)
 ✅ Auth Service: Healthy (http://localhost:9000/health)
 ✅ Company API: Healthy (http://localhost:8002/health)
+✅ Feature Flag Service: Healthy (http://localhost:8004/health)
+✅ Payment Service: Healthy (http://localhost:8005/health)
 ❌ Blockchain Service: Connection refused (http://localhost:8545/health)
 ```
 
@@ -341,6 +357,7 @@ All services are deployed on **AWS ECS Fargate** behind an **Application Load Ba
 ✅ Mobile: Touch interactions and responsive design validated
 ✅ Button Component: shadcn/ui migration complete with backward compatibility
 ✅ Landing Page: Modern redesign with glassmorphism and gradients
+✅ Payment System: Deal creation, claiming, and future deals integration tested
 ```
 
 ### Running Tests
@@ -467,6 +484,12 @@ curl https://auth.nilbx.com/health
 
 # Company API Health
 curl https://company.nilbx.com/health
+
+# Feature Flag Service Health
+curl https://feature-flags.nilbx.com/health
+
+# Payment Service Health
+curl https://payments.nilbx.com/health
 ```
 
 ### Automated Deployment Scripts
@@ -638,6 +661,8 @@ npm run dev
 curl http://localhost:8001/health  # API Service
 curl http://localhost:9000/health  # Auth Service
 curl http://localhost:8002/health  # Company API
+curl http://localhost:8004/health  # Feature Flag Service
+curl http://localhost:8005/health  # Payment Service
 
 # Test cloud integration
 npm run test:integration:aws
