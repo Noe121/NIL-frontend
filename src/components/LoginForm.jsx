@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { authService } from '../services/authService.js';
-import { useUser } from '../contexts/UserContext.jsx';
+import { useAuth } from '../hooks/useAuth.js';
 
 const LoginForm = ({ onSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -9,7 +9,7 @@ const LoginForm = ({ onSuccess, onCancel }) => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { dispatch } = useUser();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({
@@ -30,14 +30,7 @@ const LoginForm = ({ onSuccess, onCancel }) => {
       if (result.success) {
         console.log('Login successful:', { user: result.user, role: result.role });
         // Update user context
-        dispatch({
-          type: 'LOGIN',
-          payload: {
-            user: result.user,
-            role: result.role,
-            token: result.token
-          }
-        });
+        await login(result.token, result.user);
         
         if (onSuccess) onSuccess(result);
       } else {

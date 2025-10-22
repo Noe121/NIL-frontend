@@ -60,6 +60,94 @@ export const useFocusManagement = () => {
   return { getFocusableElements, trapFocus };
 };
 
+// Focus management object for backward compatibility
+export const manageFocus = {
+  getFocusableElements: (container = document) => {
+    const focusableElementsSelector = `
+      a[href]:not([disabled]),
+      button:not([disabled]),
+      textarea:not([disabled]),
+      input[type="text"]:not([disabled]),
+      input[type="radio"]:not([disabled]),
+      input[type="checkbox"]:not([disabled]),
+      input[type="email"]:not([disabled]),
+      input[type="password"]:not([disabled]),
+      input[type="number"]:not([disabled]),
+      input[type="search"]:not([disabled]),
+      input[type="tel"]:not([disabled]),
+      input[type="url"]:not([disabled]),
+      select:not([disabled]),
+      [tabindex]:not([tabindex="-1"]):not([disabled]),
+      [contenteditable]:not([contenteditable="false"])
+    `;
+    return Array.from(container.querySelectorAll(focusableElementsSelector))
+      .filter(element => {
+        return element.offsetWidth > 0 && element.offsetHeight > 0;
+      });
+  },
+
+  focusFirstElement: (container) => {
+    const focusableElements = manageFocus.getFocusableElements(container);
+    if (focusableElements.length > 0) {
+      focusableElements[0].focus();
+    }
+  },
+
+  focusLastElement: (container) => {
+    const focusableElements = manageFocus.getFocusableElements(container);
+    if (focusableElements.length > 0) {
+      focusableElements[focusableElements.length - 1].focus();
+    }
+  }
+};
+
+// Focus trap hook
+export const useFocusTrap = (ref, enabled = true) => {
+  useEffect(() => {
+    if (!enabled || !ref.current) return;
+
+    const container = ref.current;
+    const focusableElements = manageFocus.getFocusableElements(container);
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+
+    const handleTabKey = (e) => {
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          e.preventDefault();
+          lastFocusable.focus();
+        }
+      } else {
+        if (document.activeElement === lastFocusable) {
+          e.preventDefault();
+          firstFocusable.focus();
+        }
+      }
+    };
+
+    const handleEscapeKey = (e) => {
+      if (e.key === 'Escape') {
+        // Focus trap doesn't handle escape by default, but could be extended
+      }
+    };
+
+    container.addEventListener('keydown', handleTabKey);
+    container.addEventListener('keydown', handleEscapeKey);
+
+    // Focus first element when trap is enabled
+    if (firstFocusable) {
+      firstFocusable.focus();
+    }
+
+    return () => {
+      container.removeEventListener('keydown', handleTabKey);
+      container.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [ref, enabled]);
+};
+
 // Auto-focus hook for modals and dialogs
 export const useAutoFocus = (enabled = true) => {
   const elementRef = useRef(null);
@@ -194,6 +282,50 @@ export const useLiveRegion = () => {
   return { announce, LiveRegion };
 };
 
+// ARIA live region hook
+export const useAriaLiveRegion = (politeness = 'polite') => {
+  const [announcements, setAnnouncements] = useState([]);
+  const regionRef = useRef(null);
+
+  useEffect(() => {
+    if (regionRef.current) {
+      if (announcements.length > 0) {
+        const latestAnnouncement = announcements[announcements.length - 1];
+        regionRef.current.textContent = latestAnnouncement.message;
+        regionRef.current.setAttribute('aria-live', latestAnnouncement.politeness || politeness);
+      } else {
+        regionRef.current.textContent = '';
+      }
+    }
+  }, [announcements, politeness]);
+
+  const announce = (message, customPoliteness) => {
+    if (!message || typeof message !== 'string') return;
+
+    setAnnouncements(prev => [...prev, {
+      message,
+      politeness: customPoliteness || politeness,
+      timestamp: Date.now()
+    }]);
+
+    // Clear after announcement
+    setTimeout(() => {
+      setAnnouncements(prev => prev.slice(1));
+    }, 1000);
+  };
+
+  const LiveRegion = ({ className = 'sr-only' }) => (
+    <div
+      ref={regionRef}
+      aria-live={politeness}
+      aria-atomic="true"
+      className={className}
+    />
+  );
+
+  return { announce, LiveRegion };
+};
+
 // Skip navigation component
 export const SkipNavigation = ({ links = [] }) => {
   const defaultLinks = [
@@ -299,7 +431,15 @@ export const checkColorContrast = (foreground, background) => {
 
 // Reduced motion utilities
 export const respectsReducedMotion = () => {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (typeof window === 'undefined' || !window.matchMedia) {
+    return false;
+  }
+  try {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch (error) {
+    // Handle cases where matchMedia might throw (e.g., in test environments)
+    return false;
+  }
 };
 
 export const useReducedMotion = () => {
@@ -308,6 +448,10 @@ export const useReducedMotion = () => {
   );
 
   useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) {
+      return;
+    }
+    
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     
     const handleChange = (e) => {
@@ -410,6 +554,17 @@ export const getAccessibilityProps = (props) => {
   };
 };
 
+// Focus element utility
+export const focusElement = (element, options = {}) => {
+  if (element && typeof element.focus === 'function') {
+    try {
+      element.focus(options);
+    } catch (error) {
+      console.warn('Failed to focus element:', error);
+    }
+  }
+};
+
 export default {
   useFocusManagement,
   useAutoFocus,
@@ -423,5 +578,9 @@ export default {
   generateFormIds,
   accessibilityRoles,
   getAccessibilityProps,
-  SkipNavigation
+  focusElement,
+  SkipNavigation,
+  manageFocus,
+  useFocusTrap,
+  useAriaLiveRegion
 };

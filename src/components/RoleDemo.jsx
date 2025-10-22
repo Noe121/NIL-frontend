@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useUser } from '../contexts/UserContext.jsx';
+import { useAuth } from '../hooks/useAuth.js';
 import AccessibilityValidator from './AccessibilityValidator.jsx';
 
 /**
@@ -8,7 +8,8 @@ import AccessibilityValidator from './AccessibilityValidator.jsx';
  * for testing the background themes
  */
 export default function RoleDemo() {
-  const { user, role, login, logout } = useUser();
+  const { user, login, logout } = useAuth();
+  const role = user?.role;
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAccessibility, setShowAccessibility] = useState(false);
 

@@ -3,7 +3,7 @@ import React, { StrictMode, Component } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App.jsx';
-import './index.css';
+import './assets/styles/index.css';
 
 // Attach JWT to all axios requests if present
 axios.interceptors.request.use(
@@ -67,7 +67,7 @@ class ErrorBoundary extends Component {
             <strong>Error:</strong> {this.state.error && this.state.error.toString()}
             <br />
             <strong>Stack:</strong>
-            {this.state.errorInfo.componentStack}
+            {this.state.errorInfo && this.state.errorInfo.componentStack}
           </details>
           <button onClick={() => window.location.reload()} style={{ marginTop: '10px', padding: '8px 16px' }}>
             Reload Page

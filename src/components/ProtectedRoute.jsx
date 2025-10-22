@@ -1,10 +1,10 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useUser } from './contexts/UserContext.jsx';
-import LoadingSpinner from './components/LoadingSpinner.jsx';
+import { useAuth } from '../hooks/useAuth.js';
+import LoadingSpinner from './LoadingSpinner.jsx';
 
 export default function ProtectedRoute({ children }) {
-  const { user, loading } = useUser();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (

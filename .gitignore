@@ -13,6 +13,7 @@ node_modules/
 /out/
 dist/
 dist-centralized/
+dist-per-service/
 
 # Environment Files (Security Critical)
 .env

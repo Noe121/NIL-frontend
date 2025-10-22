@@ -1,7 +1,7 @@
 import { config, utils, createApiRequest } from '../utils/config';
 import axios from 'axios';
 import { authService } from './authService';
-import blockchainService from './blockchainService';
+import { createBlockchainService } from './blockchainService';
 
 // Create axios instances for different services
 const apiClient = axios.create({
@@ -44,8 +44,16 @@ const addAuthToken = (config) => {
     response => response,
     error => {
       if (error.response?.status === 401) {
-        utils.clearAuthToken();
-        window.location.href = '/login';
+        // Don't redirect if we're on public pages that should work without auth
+        const currentPath = window.location.pathname;
+        const publicPaths = ['/', '/help', '/leaderboard', '/marketplace', '/community'];
+        const isPublicProfile = currentPath.startsWith('/athletes/');
+        
+        if (!publicPaths.includes(currentPath) && !isPublicProfile) {
+          utils.clearAuthToken();
+          window.location.href = '/auth';
+        }
+        // For public pages, just reject the promise without redirecting
       }
       return Promise.reject(error);
     }
@@ -83,12 +91,21 @@ class ApiService {
     this.authClient = authClient;
     this.companyClient = companyClient;
     this.authService = authService;
-    this.blockchainService = blockchainService;
+    this.blockchainService = null; // Initialize later with web3 context
     this.endpoints = {
       athletes: '/athletes',
       sponsors: '/sponsors',
       fans: '/fans',
     };
+  }
+
+  // Initialize blockchain service with web3 context (only if feature is enabled)
+  initializeBlockchainService(web3Context) {
+    if (!config.features.blockchain) {
+      console.warn('Blockchain integration is not enabled, skipping initialization');
+      return;
+    }
+    this.blockchainService = createBlockchainService(web3Context);
   }
 
   // User Management
@@ -347,24 +364,54 @@ class ApiService {
     return response.data;
   }
 
-  // Blockchain Integration (only in centralized mode)
+  // Blockchain Integration (only when feature is enabled)
   async connectWallet() {
+    if (!config.features.blockchain) {
+      throw new Error('Blockchain integration is not enabled');
+    }
+    if (!this.blockchainService) {
+      throw new Error('Blockchain service not initialized');
+    }
     return await this.blockchainService.connectWallet();
   }
 
   async mintNFT(tokenURI) {
+    if (!config.features.blockchain) {
+      throw new Error('Blockchain integration is not enabled');
+    }
+    if (!this.blockchainService) {
+      throw new Error('Blockchain service not initialized');
+    }
     return await this.blockchainService.mintNFT(tokenURI);
   }
 
   async createSponsorship(athleteAddress, amount) {
+    if (!config.features.blockchain) {
+      throw new Error('Blockchain integration is not enabled');
+    }
+    if (!this.blockchainService) {
+      throw new Error('Blockchain service not initialized');
+    }
     return await this.blockchainService.createSponsorship(athleteAddress, amount);
   }
 
   async getTokenURI(tokenId) {
+    if (!config.features.blockchain) {
+      throw new Error('Blockchain integration is not enabled');
+    }
+    if (!this.blockchainService) {
+      throw new Error('Blockchain service not initialized');
+    }
     return await this.blockchainService.getTokenURI(tokenId);
   }
 
   async getSponsorshipDetails(sponsorshipId) {
+    if (!config.features.blockchain) {
+      throw new Error('Blockchain integration is not enabled');
+    }
+    if (!this.blockchainService) {
+      throw new Error('Blockchain service not initialized');
+    }
     return await this.blockchainService.getSponsorshipDetails(sponsorshipId);
   }
 

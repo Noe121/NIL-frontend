@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
-import { UserProvider } from '../../src/contexts/UserContext.jsx';
-import { GamificationProvider } from '../../src/contexts/GamificationContext.jsx';
+import { AuthProvider } from '../../src/contexts/AuthContext.jsx';
+import { ApiProvider } from '../../src/contexts/ApiContext.jsx';
 import NavigationBar from '../../src/components/NavigationBar.jsx';
 
 // Mock Modules
@@ -47,26 +47,29 @@ vi.mock('../../src/components/Button.jsx', () => ({
   )
 }));
 
-// Mock UserProvider context
-const mockUserContext = {
+// Mock AuthProvider context
+const mockAuthContext = {
   isAuthenticated: true,
   user: { email: 'test@example.com' },
   role: 'athlete',
   logout: vi.fn()
 };
 
-vi.mock('../../src/contexts/UserContext.jsx', () => ({
-  useUser: () => mockUserContext,
-  UserProvider: ({ children }) => <div>{children}</div>
+vi.mock('../../src/hooks/useAuth.js', () => ({
+  useAuth: () => mockAuthContext
+}));
+
+vi.mock('../../src/hooks/useApi.js', () => ({
+  useApi: () => ({ apiService: {} })
 }));
 
 const TestWrapper = ({ children, initialUser = null }) => (
   <BrowserRouter>
-    <UserProvider initialUser={initialUser || mockUserContext}>
-      <GamificationProvider>
+    <AuthProvider>
+      <ApiProvider>
         {children}
-      </GamificationProvider>
-    </UserProvider>
+      </ApiProvider>
+    </AuthProvider>
   </BrowserRouter>
 );
 
@@ -107,8 +110,8 @@ describe('NavigationBar Component', () => {
     expect(menuButton).toBeInTheDocument();
   });
 
-  it('displays role-based navigation for authenticated athlete', async () => {
-    mockUserContext.role = 'athlete';
+  it('displays common navigation for authenticated athlete', async () => {
+    mockAuthContext.role = 'athlete';
     const athleteUser = {
       isAuthenticated: true,
       user: { email: 'athlete@test.com' },
@@ -122,21 +125,20 @@ describe('NavigationBar Component', () => {
       </TestWrapper>
     );
 
-    // Verify athlete-specific navigation items
+    // Verify common navigation items are present for all authenticated users
     const nav = screen.getByTestId('desktop-navigation');
     
-    // Verify athlete-specific links
-    expect(screen.getByRole('link', { name: /My Sponsorships/ })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Schedule/ })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Analytics/ })).toBeInTheDocument();
-
-    // Verify sponsor-specific links are not present
-    expect(screen.queryByRole('link', { name: 'Find Athletes' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Manage Deals' })).not.toBeInTheDocument();
+    // Verify common navigation links
+    expect(screen.getByRole('link', { name: /Dashboard/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Marketplace/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Community/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Leaderboard/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Profile/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Help Center/ })).toBeInTheDocument();
   });
 
-  it('displays role-based navigation for authenticated sponsor', async () => {
-    mockUserContext.role = 'sponsor';
+  it('displays common navigation for authenticated sponsor', async () => {
+    mockAuthContext.role = 'sponsor';
     const sponsorUser = {
       isAuthenticated: true,
       user: { email: 'sponsor@test.com' },
@@ -150,17 +152,16 @@ describe('NavigationBar Component', () => {
       </TestWrapper>
     );
 
-    // Verify sponsor-specific navigation items
+    // Verify common navigation items are present for all authenticated users
     const nav = screen.getByTestId('desktop-navigation');
     
-    // Verify sponsor-specific links
-    expect(screen.getByRole('link', { name: /Find Athletes/ })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Manage Deals/ })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Reports/ })).toBeInTheDocument();
-
-    // Verify athlete-specific links are not present
-    expect(screen.queryByRole('link', { name: 'My Sponsorships' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Schedule' })).not.toBeInTheDocument();
+    // Verify common navigation links
+    expect(screen.getByRole('link', { name: /Dashboard/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Marketplace/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Community/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Leaderboard/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Profile/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Help Center/ })).toBeInTheDocument();
   });
 
   it('opens mobile menu when menu button is clicked', async () => {
@@ -194,7 +195,7 @@ describe('NavigationBar Component', () => {
   it('handles logout correctly for different viewports', async () => {
     const user = userEvent.setup();
     const mockLogout = vi.fn();
-    mockUserContext.logout = mockLogout;
+    mockAuthContext.logout = mockLogout;
     const testUser = {
       isAuthenticated: true,
       user: { email: 'test@example.com' },

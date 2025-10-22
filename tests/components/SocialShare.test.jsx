@@ -582,12 +582,12 @@ describe('SocialShare Component - Accessibility', () => {
     const copyButton = screen.getByRole('button', { name: /copy/i });
     
     // Test that we can move through the buttons with keyboard
-    // Verify that the share buttons are focusable
-    expect(twitterButton).toHaveAttribute('tabindex', '0');
-    expect(facebookButton).toHaveAttribute('tabindex', '0');
-    expect(instagramButton).toHaveAttribute('tabindex', '0');
-    expect(linkedinButton).toHaveAttribute('tabindex', '0');
-    expect(copyButton).toHaveAttribute('tabindex', '0');
+    // Verify that the share buttons are focusable - motion.div wrappers should be focusable
+    expect(twitterButton.closest('[tabindex]')).toHaveAttribute('tabindex', '0');
+    expect(facebookButton.closest('[tabindex]')).toHaveAttribute('tabindex', '0');
+    expect(instagramButton.closest('[tabindex]')).toHaveAttribute('tabindex', '0');
+    expect(linkedinButton.closest('[tabindex]')).toHaveAttribute('tabindex', '0');
+    expect(copyButton.closest('[tabindex]')).toHaveAttribute('tabindex', '0');
   });
 
   it('announces share actions to screen readers', async () => {

@@ -1,13 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useUser } from '../contexts/UserContext.jsx';
+import { useAuth } from '../hooks/useAuth.js';
 import { useScreenSize, useTouchGestures, MobileDrawer } from '../utils/responsive.jsx';
 import SearchComponent from './SearchComponent.jsx';
 import Button from './Button.jsx';
 
 const NavigationBar = () => {
-  const { isAuthenticated, role, logout, user } = useUser();
+  const { isAuthenticated, role, logout, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isMobile } = useScreenSize();
   const mobileMenuRef = useRef(null);
@@ -39,7 +39,11 @@ const NavigationBar = () => {
 
     const commonItems = [
       { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-      { path: '/profile', label: 'Profile', icon: '👤' }
+      { path: '/marketplace', label: 'Marketplace', icon: '🏪' },
+      { path: '/community', label: 'Community', icon: '💬' },
+      { path: '/leaderboard', label: 'Leaderboard', icon: '🏆' },
+      { path: '/profile', label: 'Profile', icon: '👤' },
+      { path: '/help', label: 'Help Center', icon: '🆘' }
     ];
 
     const roleSpecificItems = {
@@ -117,7 +121,7 @@ const NavigationBar = () => {
 
           {/* Desktop Navigation */}
           <div data-testid="desktop-navigation" className="hidden lg:flex items-center space-x-6">
-            {navigationItems.slice(0, 5).map((item, index) => (
+            {navigationItems.slice(0, 6).map((item, index) => (
               <motion.div
                 key={item.path}
                 initial={{ opacity: 0, y: -10 }}
@@ -146,7 +150,7 @@ const NavigationBar = () => {
               <div className="hidden md:flex items-center space-x-4">
                 <div className="flex items-center space-x-2 px-3 py-1 bg-gray-100 rounded-full">
                   <span className="text-sm text-gray-600">
-                    {role?.charAt(0).toUpperCase() + role?.slice(1)}
+                    {role ? (role.charAt(0).toUpperCase() + role.slice(1)) : 'User'}
                   </span>
                   <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-medium">
@@ -216,7 +220,7 @@ const NavigationBar = () => {
                 <div>
                   <p className="font-medium text-gray-900">{user?.email}</p>
                   <p className="text-sm text-gray-600">
-                    {role?.charAt(0).toUpperCase() + role?.slice(1)}
+                    {role ? (role.charAt(0).toUpperCase() + role.slice(1)) : 'User'}
                   </p>
                 </div>
               </div>

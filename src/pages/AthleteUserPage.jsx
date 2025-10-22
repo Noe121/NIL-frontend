@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext.jsx';
-import { useConfig } from '../utils/config.js';
+import { useAuth } from '../hooks/useAuth.js';
+import { useApi } from '../hooks/useApi.js';
 import SponsorshipTasks from '../components/SponsorshipTasks.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
+import AnalyticsChart from '../components/AnalyticsChart.jsx';
 import { toast } from 'react-toastify';
 
 const AthleteUserPage = () => {
   const navigate = useNavigate();
-  const { user } = useUser();
-  const config = useConfig();
+  const { user } = useAuth();
+  const { apiService } = useApi();
   const [analytics, setAnalytics] = useState(null);
   const [content, setContent] = useState([]);
   const [metrics, setMetrics] = useState(null);
@@ -25,43 +26,16 @@ const AthleteUserPage = () => {
       setIsLoading(true);
       try {
         // Fetch analytics
-        const analyticsResponse = await fetch(
-          `${config.API_URL}/athletes/${user.id}/analytics`,
-          {
-            headers: {
-              'Authorization': `Bearer ${user.token}`
-            }
-          }
-        );
-        if (!analyticsResponse.ok) throw new Error('Failed to fetch analytics');
-        const analyticsData = await analyticsResponse.json();
-        setAnalytics(analyticsData.analytics);
+        const analyticsData = await apiService.getAthleteAnalytics(user.id);
+        setAnalytics(analyticsData);
 
         // Fetch content
-        const contentResponse = await fetch(
-          `${config.API_URL}/athletes/${user.id}/content`,
-          {
-            headers: {
-              'Authorization': `Bearer ${user.token}`
-            }
-          }
-        );
-        if (!contentResponse.ok) throw new Error('Failed to fetch content');
-        const contentData = await contentResponse.json();
-        setContent(contentData.content || []);
+        const contentData = await apiService.listContent(user.id, 'athlete');
+        setContent(contentData || []);
 
         // Fetch social metrics
-        const metricsResponse = await fetch(
-          `${config.API_URL}/athletes/${user.id}/social-metrics`,
-          {
-            headers: {
-              'Authorization': `Bearer ${user.token}`
-            }
-          }
-        );
-        if (!metricsResponse.ok) throw new Error('Failed to fetch metrics');
-        const metricsData = await metricsResponse.json();
-        setMetrics(metricsData.metrics);
+        const metricsData = await apiService.getSocialMetrics(user.id, 'athlete');
+        setMetrics(metricsData);
 
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -72,7 +46,7 @@ const AthleteUserPage = () => {
     };
 
     fetchData();
-  }, [user, navigate, config]);
+  }, [user, navigate, apiService]);
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -85,18 +59,13 @@ const AthleteUserPage = () => {
         <div className="col-span-2">
           <h2 className="text-2xl font-bold mb-4">Analytics & Performance</h2>
           {analytics && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(analytics).map(([key, value]) => (
-                <div key={key} className="bg-white rounded-lg shadow p-4">
-                  <h3 className="text-lg font-semibold capitalize">
-                    {key.replace('_', ' ')}
-                  </h3>
-                  <p className="text-3xl font-bold mt-2">
-                    {typeof value === 'number' ? value.toLocaleString() : value}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <AnalyticsChart
+              data={Object.entries(analytics).map(([key, value]) => ({
+                label: key.replace('_', ' '),
+                value: typeof value === 'number' ? value : 0
+              }))}
+              title="Performance Metrics"
+            />
           )}
         </div>
 

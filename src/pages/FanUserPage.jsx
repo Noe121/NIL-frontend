@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext.jsx';
-import { useConfig } from '../utils/config.js';
+import { useAuth } from '../hooks/useAuth.js';
+import { useApi } from '../hooks/useApi.js';
 import SearchComponent from '../components/SearchComponent.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import { toast } from 'react-toastify';
 
 const FanUserPage = () => {
   const navigate = useNavigate();
-  const { user } = useUser();
-  const config = useConfig();
+  const { user } = useAuth();
+  const { apiService } = useApi();
   const [favoriteAthletes, setFavoriteAthletes] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,28 +23,13 @@ const FanUserPage = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch favorite athletes
-        const response = await fetch(`${config.API_URL}/fans/${user.id}`, {
-          headers: {
-            'Authorization': `Bearer ${user.token}`
-          }
-        });
-        if (!response.ok) throw new Error('Failed to fetch fan data');
-        const data = await response.json();
-        setFavoriteAthletes(data.fan.favorite_athletes || []);
+        // Fetch fan profile data (including favorite athletes)
+        const fanData = await apiService.getFan(user.id);
+        setFavoriteAthletes(fanData.favorite_athletes || []);
 
         // Fetch notifications
-        const notifResponse = await fetch(
-          `${config.API_URL}/fans/${user.id}/notifications`,
-          {
-            headers: {
-              'Authorization': `Bearer ${user.token}`
-            }
-          }
-        );
-        if (!notifResponse.ok) throw new Error('Failed to fetch notifications');
-        const notifData = await notifResponse.json();
-        setNotifications(notifData.notifications || []);
+        const notificationsData = await apiService.getNotifications(user.id, 'fan');
+        setNotifications(notificationsData || []);
 
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -55,7 +40,7 @@ const FanUserPage = () => {
     };
 
     fetchData();
-  }, [user, navigate, config]);
+  }, [user, navigate, apiService]);
 
   const handleAthleteSelect = (athlete) => {
     navigate(`/athletes/${athlete.user_id}`);
@@ -63,17 +48,7 @@ const FanUserPage = () => {
 
   const handleMarkNotificationRead = async (notificationId) => {
     try {
-      const response = await fetch(
-        `${config.API_URL}/fans/${user.id}/notifications/${notificationId}/read`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${user.token}`
-          }
-        }
-      );
-      
-      if (!response.ok) throw new Error('Failed to update notification');
+      await apiService.markNotificationAsRead(user.id, 'fan', notificationId);
       
       setNotifications(notifications.map(notif => 
         notif.id === notificationId ? { ...notif, read: true } : notif

@@ -115,18 +115,62 @@ export default defineConfig(({ command, mode }) => {
     // Build configuration
     build: {
       outDir: `dist-${appMode}`,
+      // Increase chunk size warning limit to reduce noise
+      chunkSizeWarningLimit: 1000,
       rollupOptions: {
         input: {
           main: './index.html' // React app as main entry
         },
         output: {
-          manualChunks: {
-            // Vendor chunk for better caching
-            vendor: ['react', 'react-dom', 'react-router-dom'],
-            // Separate chunk for blockchain-related code (centralized mode)
-            ...(appMode === 'centralized' && {
-              blockchain: [] // Empty for now - add when blockchain deps are installed
-            })
+          manualChunks: (id) => {
+            // Vendor libraries
+            if (id.includes('node_modules')) {
+              // React ecosystem
+              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+                return 'react-vendor';
+              }
+              // UI libraries
+              if (id.includes('framer-motion') || id.includes('@radix-ui') || id.includes('lucide-react')) {
+                return 'ui-vendor';
+              }
+              // HTTP and state management
+              if (id.includes('axios') || id.includes('@tanstack') || id.includes('zustand')) {
+                return 'data-vendor';
+              }
+              // Form handling
+              if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
+                return 'forms-vendor';
+              }
+              // Web3 and blockchain (when implemented)
+              if (id.includes('ethers') || id.includes('web3') || id.includes('@wagmi') || id.includes('@rainbow-me')) {
+                return 'web3-vendor';
+              }
+              // Other node_modules
+              return 'vendor';
+            }
+            
+            // Application code splitting
+            if (id.includes('/src/')) {
+              // Pages/components that are rarely used together
+              if (id.includes('/pages/') || id.includes('/views/')) {
+                return 'pages';
+              }
+              // Contexts and providers
+              if (id.includes('/contexts/') || id.includes('/providers/')) {
+                return 'contexts';
+              }
+              // Utilities and helpers
+              if (id.includes('/utils/') || id.includes('/hooks/')) {
+                return 'utils';
+              }
+              // Services and API calls
+              if (id.includes('/services/') || id.includes('/api/')) {
+                return 'services';
+              }
+            }
+            
+            // Default chunk for everything else
+            return 'main';
           }
         }
       },

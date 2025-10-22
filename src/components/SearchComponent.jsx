@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext.jsx';
+import { useAuth } from '../hooks/useAuth.js';
 import LoadingSpinner from './LoadingSpinner.jsx';
 import { config } from '../utils/config.js';
 
@@ -14,7 +14,7 @@ const SearchComponent = ({
   debounceMs = 300
 }) => {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user } = useAuth();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [isOpen, setIsOpen] = useState(false);

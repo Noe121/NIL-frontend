@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from './contexts/UserContext.jsx';
-import FormField from './components/FormField.jsx';
-import Button from './components/Button.jsx';
-import { validators } from './utils/validation.js';
-import { config } from './utils/config.js';
+import { useAuth } from '../hooks/useAuth.js';
+import FormField from '../components/FormField.jsx';
+import Button from '../components/Button.jsx';
+import { validators } from '../utils/validation.js';
+import { config } from '../utils/config.js';
+import { authService } from '../services/authService.js';
 
 export default function Auth() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
-  const { login, loading } = useUser();
+  const { login, loading } = useAuth();
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -40,33 +41,24 @@ export default function Auth() {
     }
 
     try {
-      const response = await fetch(`${config.authServiceUrl}login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          username: form.email,
-          password: form.password,
-        }),
+      const result = await authService.login({
+        email: form.email,
+        password: form.password
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        // Decode token to get user info
-        const payload = JSON.parse(atob(data.access_token.split('.')[1]));
+      if (result.success) {
+        // Extract user info from token
         const userData = {
-          id: payload.sub,
-          email: payload.email || form.email,
-          role: payload.role,
-          name: payload.name || payload.email?.split('@')[0]
+          id: result.user.id,
+          email: result.user.email || form.email,
+          role: result.role,
+          name: result.user.name || result.user.email?.split('@')[0]
         };
         
-        login(data.access_token, userData);
+        login(result.token, userData);
         navigate('/dashboard');
       } else {
-        const errorData = await response.json();
-        setErrors({ submit: errorData.detail || 'Login failed' });
+        setErrors({ submit: result.error || 'Login failed' });
       }
     } catch (err) {
       setErrors({ submit: 'Network error. Please try again.' });
@@ -74,7 +66,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div data-testid="auth-page" className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>

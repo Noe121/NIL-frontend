@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useScreenSize } from '../utils/responsive.jsx';
-import { getAccessibilityProps } from '../utils/accessibility.js';
+import { getAccessibilityProps } from '../utils/accessibility.jsx';
 
 const Tooltip = (props) => {
   const {

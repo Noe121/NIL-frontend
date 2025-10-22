@@ -102,7 +102,9 @@ const getApiConfig = () => {
       crossServiceCommunication: IS_CENTRALIZED && (getEnvVar('VITE_ENABLE_CROSS_SERVICE_COMMUNICATION') === 'true'),
       realTimeUpdates: IS_CENTRALIZED && (getEnvVar('VITE_ENABLE_REAL_TIME_UPDATES') === 'true'),
       roleSwitch: getEnvVar('VITE_ENABLE_ROLE_SWITCHING') !== 'false',
-      perServiceDatabases: IS_PER_SERVICE
+      perServiceDatabases: IS_PER_SERVICE,
+      traditionalPayments: getEnvVar('VITE_ENABLE_TRADITIONAL_PAYMENTS') === 'true',
+      blockchainPayments: getEnvVar('VITE_ENABLE_BLOCKCHAIN_PAYMENTS') === 'true'
     },
     
     // Authentication settings

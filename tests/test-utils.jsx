@@ -2,8 +2,8 @@ import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
-import { UserContext } from '../src/contexts/UserContext';
-import { Web3Context } from '../src/contexts/Web3Context';
+import { AuthProvider } from '../src/contexts/AuthContext.jsx';
+import { ApiProvider } from '../src/contexts/ApiContext.jsx';
 import { ToastContainer } from 'react-toastify';
 import { vi } from 'vitest';
 
@@ -27,7 +27,7 @@ vi.mock('react-router-dom', async () => {
 });
 
 // Mock contexts
-export const mockUserContext = {
+export const mockAuthContext = {
   user: null,
   setUser: vi.fn(),
   role: null,
@@ -39,14 +39,10 @@ export const mockUserContext = {
   setLoading: vi.fn()
 };
 
-export const mockConfigContext = {
+export const mockApiContext = {
   apiUrl: 'http://localhost:8000',
-  blockchainEnabled: false,
-  features: {
-    nftMarketplace: false,
-    smartContracts: false
-  },
-  environment: 'test'
+  makeRequest: vi.fn(),
+  isLoading: false
 };
 
 export const mockWeb3Context = {
@@ -97,21 +93,20 @@ function render(
   ui,
   {
     route = '/',
-    userContext = mockUserContext,
-    configContext = mockConfigContext,
-    web3Context = mockWeb3Context,
+    authContext = mockAuthContext,
+    apiContext = mockApiContext,
     ...renderOptions
   } = {}
 ) {
   function Wrapper({ children }) {
     return (
       <MemoryRouter initialEntries={[route]}>
-        <UserContext.Provider value={userContext}>
-          <Web3Context.Provider value={web3Context}>
+        <AuthProvider value={authContext}>
+          <ApiProvider value={apiContext}>
             <ToastContainer />
             {children}
-          </Web3Context.Provider>
-        </UserContext.Provider>
+          </ApiProvider>
+        </AuthProvider>
       </MemoryRouter>
     );
   }
@@ -150,7 +145,7 @@ const customQueries = {
 // Test setup helpers
 export const setupAuthenticatedTest = (userProps = {}) => {
   const authenticatedContext = {
-    ...mockUserContext,
+    ...mockAuthContext,
     user: {
       id: TEST_DATA.USER_ID,
       email: TEST_DATA.EMAIL,
@@ -161,7 +156,7 @@ export const setupAuthenticatedTest = (userProps = {}) => {
   };
 
   return {
-    userContext: authenticatedContext
+    authContext: authenticatedContext
   };
 };
 

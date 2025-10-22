@@ -34,7 +34,7 @@ async function registerAndGetJWT() {
   try {
     // Register user (ignore errors if already exists)
     await axios.post(
-      AUTH_SERVICE_REGISTER_URL,
+      REGISTER_URL,
       { username: USERNAME, password: PASSWORD, role: ROLE },
       { headers: { 'Content-Type': 'application/json' } }
     );
@@ -47,7 +47,7 @@ async function registerAndGetJWT() {
     params.append('username', USERNAME);
     params.append('password', PASSWORD);
     const resp = await axios.post(
-      AUTH_SERVICE_LOGIN_URL,
+      LOGIN_URL,
       params,
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );

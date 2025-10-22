@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext.jsx';
-import { useConfig } from '../utils/config.js';
+import { useAuth } from '../hooks/useAuth.js';
+import { useApi } from '../hooks/useApi.js';
 import SponsorshipTasks from '../components/SponsorshipTasks.jsx';
 import SearchComponent from '../components/SearchComponent.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
@@ -9,8 +9,8 @@ import { toast } from 'react-toastify';
 
 const SponsorUserPage = () => {
   const navigate = useNavigate();
-  const { user } = useUser();
-  const config = useConfig();
+  const { user } = useAuth();
+  const { apiService } = useApi();
   const [analytics, setAnalytics] = useState(null);
   const [activeSponshorships, setActiveSponshorships] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,30 +25,15 @@ const SponsorUserPage = () => {
       setIsLoading(true);
       try {
         // Fetch analytics
-        const analyticsResponse = await fetch(
-          `${config.API_URL}/sponsors/${user.id}/analytics`,
-          {
-            headers: {
-              'Authorization': `Bearer ${user.token}`
-            }
-          }
-        );
-        if (!analyticsResponse.ok) throw new Error('Failed to fetch analytics');
-        const analyticsData = await analyticsResponse.json();
-        setAnalytics(analyticsData.analytics);
+        const analyticsData = await apiService.getSponsorAnalytics(user.id);
+        setAnalytics(analyticsData);
 
         // Fetch active sponsorships
-        const sponsorshipsResponse = await fetch(
-          `${config.API_URL}/sponsorships?sponsor_id=${user.id}&status=active`,
-          {
-            headers: {
-              'Authorization': `Bearer ${user.token}`
-            }
-          }
-        );
-        if (!sponsorshipsResponse.ok) throw new Error('Failed to fetch sponsorships');
-        const sponsorshipsData = await sponsorshipsResponse.json();
-        setActiveSponshorships(sponsorshipsData.sponsorships || []);
+        const sponsorshipsData = await apiService.listSponsorships({
+          sponsorId: user.id,
+          status: 'active'
+        });
+        setActiveSponshorships(sponsorshipsData || []);
 
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -59,7 +44,7 @@ const SponsorUserPage = () => {
     };
 
     fetchData();
-  }, [user, navigate, config]);
+  }, [user, navigate, apiService]);
 
   const handleAthleteSelect = (athlete) => {
     // Redirect to athlete profile or open task creation modal

@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Button as ShadcnButton, buttonVariants } from '@/components/ui/button';
 import LoadingSpinner from './LoadingSpinner.jsx';
 
-const Button = ({
+// Enhanced Button component that wraps shadcn/ui Button
+const Button = React.forwardRef(({
   children,
   variant = 'primary',
   size = 'medium',
@@ -17,48 +19,27 @@ const Button = ({
   ariaLabel,
   tooltip,
   ...props
-}) => {
-  // Variant styles
-  const variants = {
-    primary: {
-      base: 'bg-blue-600 text-white border-transparent hover:bg-blue-700 focus:ring-blue-500',
-      disabled: 'bg-gray-300 text-gray-500 cursor-not-allowed'
-    },
-    secondary: {
-      base: 'bg-white text-gray-900 border-gray-300 hover:bg-gray-50 focus:ring-blue-500',
-      disabled: 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-    },
-    outline: {
-      base: 'bg-transparent text-blue-600 border-blue-600 hover:bg-blue-50 focus:ring-blue-500',
-      disabled: 'bg-transparent text-gray-400 border-gray-300 cursor-not-allowed'
-    },
-    ghost: {
-      base: 'bg-transparent text-gray-600 border-transparent hover:bg-gray-100 focus:ring-gray-500',
-      disabled: 'bg-transparent text-gray-400 cursor-not-allowed'
-    },
-    danger: {
-      base: 'bg-red-600 text-white border-transparent hover:bg-red-700 focus:ring-red-500',
-      disabled: 'bg-gray-300 text-gray-500 cursor-not-allowed'
-    },
-    success: {
-      base: 'bg-green-600 text-white border-transparent hover:bg-green-700 focus:ring-green-500',
-      disabled: 'bg-gray-300 text-gray-500 cursor-not-allowed'
-    },
-    warning: {
-      base: 'bg-yellow-500 text-white border-transparent hover:bg-yellow-600 focus:ring-yellow-500',
-      disabled: 'bg-gray-300 text-gray-500 cursor-not-allowed'
-    }
+}, ref) => {
+  // Map old variants to shadcn/ui variants
+  const variantMap = {
+    primary: 'default',
+    secondary: 'secondary',
+    outline: 'outline',
+    ghost: 'ghost',
+    danger: 'destructive',
+    success: 'default', // Map success to default (green handled via custom class)
+    warning: 'default'  // Map warning to default (yellow handled via custom class)
   };
 
-  // Size styles
-  const sizes = {
-    small: 'px-3 py-1.5 text-sm',
-    medium: 'px-4 py-2 text-sm',
-    large: 'px-6 py-3 text-base',
-    xl: 'px-8 py-4 text-lg'
+  // Map old sizes to shadcn/ui sizes
+  const sizeMap = {
+    small: 'sm',
+    medium: 'default',
+    large: 'lg',
+    xl: 'lg' // xl maps to lg
   };
 
-  // Icon sizes
+  // Icon sizes (keep existing logic)
   const iconSizes = {
     small: 'w-4 h-4',
     medium: 'w-5 h-5',
@@ -67,17 +48,20 @@ const Button = ({
   };
 
   const isDisabled = disabled || loading;
-  const variantStyles = variants[variant];
-  const currentStyle = isDisabled ? variantStyles.disabled : variantStyles.base;
+  const shadcnVariant = variantMap[variant] || 'default';
+  const shadcnSize = sizeMap[size] || 'default';
+
+  // Additional classes for unsupported variants
+  const additionalClasses = [];
+  if (variant === 'success') {
+    additionalClasses.push('bg-green-600 text-white border-transparent hover:bg-green-700 focus:ring-green-500');
+  } else if (variant === 'warning') {
+    additionalClasses.push('bg-yellow-500 text-white border-transparent hover:bg-yellow-600 focus:ring-yellow-500');
+  }
 
   const baseClasses = `
-    inline-flex items-center justify-center
-    border font-medium rounded-lg
-    transition-all duration-200
-    focus:outline-none focus:ring-2 focus:ring-offset-2
-    ${sizes[size]}
-    ${currentStyle}
     ${fullWidth ? 'w-full' : ''}
+    ${additionalClasses.join(' ')}
     ${className}
   `.trim().replace(/\s+/g, ' ');
 
@@ -89,14 +73,9 @@ const Button = ({
     onClick?.(e);
   };
 
-  const buttonVariants = {
-    hover: { scale: isDisabled ? 1 : 1.02 },
-    tap: { scale: isDisabled ? 1 : 0.98 }
-  };
-
   const renderIcon = (position) => {
     if (!icon || loading) return null;
-    
+
     const iconElement = typeof icon === 'string' ? (
       <span role="img" aria-hidden="true" className={iconSizes[size]}>
         {icon}
@@ -109,7 +88,7 @@ const Button = ({
 
     return (
       <span className={
-        position === 'left' 
+        position === 'left'
           ? `${children ? 'mr-2' : ''}`
           : `${children ? 'ml-2' : ''}`
       }>
@@ -121,9 +100,9 @@ const Button = ({
   const buttonContent = (
     <>
       {loading && (
-        <LoadingSpinner 
-          size={size === 'small' ? 'small' : 'medium'} 
-          color="currentColor" 
+        <LoadingSpinner
+          size={size === 'small' ? 'small' : 'medium'}
+          color="currentColor"
           className={children ? 'mr-2' : ''}
         />
       )}
@@ -137,21 +116,33 @@ const Button = ({
     </>
   );
 
+  // Create motion variants for the button
+  const motionVariants = {
+    hover: { scale: isDisabled ? 1 : 1.02 },
+    tap: { scale: isDisabled ? 1 : 0.98 }
+  };
+
   const buttonElement = (
-    <motion.button
-      type={type}
-      onClick={handleClick}
-      disabled={isDisabled}
-      className={baseClasses}
-      variants={buttonVariants}
+    <motion.div
+      variants={motionVariants}
       whileHover="hover"
       whileTap="tap"
-      aria-label={ariaLabel}
-      title={tooltip}
-      {...props}
+      className="inline-block"
     >
-      {buttonContent}
-    </motion.button>
+      <ShadcnButton
+        ref={ref}
+        type={type}
+        variant={shadcnVariant}
+        size={shadcnSize}
+        disabled={isDisabled}
+        onClick={handleClick}
+        className={baseClasses}
+        aria-label={ariaLabel}
+        {...props}
+      >
+        {buttonContent}
+      </ShadcnButton>
+    </motion.div>
   );
 
   // Wrap with tooltip if provided
@@ -168,9 +159,9 @@ const Button = ({
   }
 
   return buttonElement;
-};
+});
 
-// Compound components for common button groups
+Button.displayName = "Button";// Compound components for common button groups
 Button.Group = ({ children, className = '', spacing = 'normal', ...props }) => {
   const spacingClasses = {
     tight: 'space-x-1',
@@ -197,11 +188,11 @@ Button.Icon = ({ icon, ...props }) => {
 };
 
 // FAB (Floating Action Button)
-Button.Fab = ({ 
-  icon, 
-  position = 'bottom-right', 
-  className = '', 
-  ...props 
+Button.Fab = ({
+  icon,
+  position = 'bottom-right',
+  className = '',
+  ...props
 }) => {
   const positions = {
     'bottom-right': 'fixed bottom-6 right-6',
@@ -225,13 +216,13 @@ Button.Fab = ({
 };
 
 // Button with dropdown
-Button.Dropdown = ({ 
-  children, 
-  dropdownItems = [], 
-  dropdownOpen, 
+Button.Dropdown = ({
+  children,
+  dropdownItems = [],
+  dropdownOpen,
   onDropdownToggle,
   className = '',
-  ...props 
+  ...props
 }) => {
   return (
     <div className="relative inline-block">
@@ -260,7 +251,7 @@ Button.Dropdown = ({
       >
         {children}
       </Button>
-      
+
       {dropdownOpen && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}

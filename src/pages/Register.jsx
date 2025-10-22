@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { config } from './utils/config.js';
+import { config } from '../utils/config.js';
 
 export default function Register() {
   const [form, setForm] = useState({ email: '', password: '', role: 'athlete' });
