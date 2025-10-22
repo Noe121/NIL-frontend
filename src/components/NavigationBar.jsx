@@ -114,6 +114,12 @@ const NavigationBar = () => {
             className="flex items-center space-x-2"
           >
             <Link to="/" className="flex items-center space-x-2">
+              <img
+                src="/NILbx-logo.jpg"
+                alt="NILbx Logo"
+                className="h-8 w-auto"
+                style={{ maxHeight: '32px' }}
+              />
               <span className="text-2xl font-bold text-blue-600">NILbx</span>
               <span className="text-lg" role="img" aria-label="Trophy">🏆</span>
             </Link>
