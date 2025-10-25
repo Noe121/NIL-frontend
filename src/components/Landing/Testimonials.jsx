@@ -3,7 +3,7 @@ import { Quote, Star } from 'lucide-react';
 
 const testimonials = [
   {
-    quote: "NILbx helped me turn my athletic achievements into real opportunities. The platform made it easy to connect with sponsors who believe in my vision.",
+    quote: "NILBx helped me turn my athletic achievements into real opportunities. The platform made it easy to connect with sponsors who believe in my vision.",
     author: "Sarah Williams",
     role: "Division I Volleyball Player",
     avatar: "/avatars/sarah.jpg"
@@ -29,7 +29,7 @@ const Testimonials = () => (
         <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
           What Our Community Says
         </h2>
-        <p className="text-xl text-blue-200 max-w-3xl mx-auto">
+        <p className="text-xl text-white max-w-3xl mx-auto">
           Join thousands of athletes, sponsors, and fans who are already part of the NIL revolution.
         </p>
       </div>
@@ -44,7 +44,7 @@ const Testimonials = () => (
             <Quote className="w-12 h-12 text-blue-500/20 absolute -top-6 -right-6" />
 
             <div className="space-y-6">
-              <div className="text-blue-200 leading-relaxed">
+              <div className="text-blue-100 leading-relaxed">
                 "{testimonial.quote}"
               </div>
 
@@ -60,7 +60,7 @@ const Testimonials = () => (
                   <p className="font-semibold text-white">
                     {testimonial.author}
                   </p>
-                  <p className="text-sm text-blue-300">
+                  <p className="text-sm text-white">
                     {testimonial.role}
                   </p>
                 </div>

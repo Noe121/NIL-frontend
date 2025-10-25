@@ -44,7 +44,7 @@ export default function CommunityPage() {
         const demoThreads = [
           {
             id: 'demo-1',
-            title: 'Welcome to NILbx Community!',
+            title: 'Welcome to NILBx Community!',
             content: 'Excited to see the future of college sports NIL opportunities. This platform looks amazing!',
             author: 'SportsFan2024',
             createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago

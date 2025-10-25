@@ -13,6 +13,11 @@ import { ToastProvider } from './components/NotificationToast.jsx';
 
 // Landing page loads immediately (most important)
 import LandingPage from './pages/LandingPage.jsx';
+import SportsPage from './pages/SportsPage.jsx';
+import InfluencerLandingPage from './components/Landing/InfluencerLandingPage.jsx';
+import BrandLandingPage from './components/Landing/BrandLandingPage.jsx';
+import FanLandingPage from './components/Landing/FanLandingPage.jsx';
+import AgencyLandingPage from './components/Landing/AgencyLandingPage.jsx';
 
 // Lazy load other pages for better performance
 const Auth = lazy(() => import('./pages/Auth.jsx'));
@@ -21,6 +26,8 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword.jsx'));
 const Register = lazy(() => import('./pages/Register.jsx'));
 const AthleteUserPage = lazy(() => import('./pages/AthleteUserPage.jsx'));
 const AthleteProfilePage = lazy(() => import('./pages/AthleteProfilePage.jsx'));
+const InfluencerUserPage = lazy(() => import('./pages/InfluencerUserPage.jsx'));
+const InfluencerProfilePage = lazy(() => import('./pages/InfluencerProfilePage.jsx'));
 const SponsorUserPage = lazy(() => import('./pages/SponsorUserPage.jsx'));
 const FanUserPage = lazy(() => import('./pages/FanUserPage.jsx'));
 const MarketplacePage = lazy(() => import('./pages/MarketplacePage.jsx'));
@@ -83,6 +90,11 @@ export default function App() {
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/sports" element={<SportsPage />} />
+            <Route path="/creator" element={<InfluencerLandingPage />} />
+            <Route path="/brand" element={<BrandLandingPage />} />
+            <Route path="/fan" element={<FanLandingPage />} />
+            <Route path="/agency" element={<AgencyLandingPage />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -91,10 +103,18 @@ export default function App() {
             {/* Public Athlete Profiles */}
             <Route path="/athletes/:id" element={<AthleteProfilePage />} />
 
+            {/* Public Influencer Profiles */}
+            <Route path="/influencer/:id" element={<InfluencerProfilePage />} />
+
             {/* Role-specific dashboards */}
             <Route path="/dashboard/athlete" element={
               <ProtectedRoute role="athlete">
                 <AthleteUserPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/influencer" element={
+              <ProtectedRoute roles={['influencer', 'student_athlete']}>
+                <InfluencerUserPage />
               </ProtectedRoute>
             } />
             <Route path="/dashboard/sponsor" element={

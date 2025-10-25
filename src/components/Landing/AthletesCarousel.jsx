@@ -2,10 +2,10 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Eye, DollarSign } from 'lucide-react';
 
 const athletes = [
-  { name: "Alex Johnson", sport: "🏀 Basketball", followers: "25.5K", sponsors: 1 },
-  { name: "Marcus Thompson", sport: "🏈 Football", followers: "53.5K", sponsors: 10 },
-  { name: "James Chen", sport: "🏃 Track", followers: "46.7K", sponsors: 5 },
-  { name: "Maria Rodriguez", sport: "⚽ Soccer", followers: "24.8K", sponsors: 2 },
+  { name: "Alex Johnson", sport: "🏀 Basketball", followers: "125.5K", earnings: "$85K" },
+  { name: "Marcus Thompson", sport: "🏈 Football", followers: "453.5K", earnings: "$320K" },
+  { name: "James Chen", sport: "🏃 Track", followers: "246.7K", earnings: "$180K" },
+  { name: "Maria Rodriguez", sport: "⚽ Soccer", followers: "324.8K", earnings: "$215K" },
 ];
 
 export default function AthletesCarousel() {
@@ -14,7 +14,7 @@ export default function AthletesCarousel() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="inline-block px-8 py-4 glass rounded-full text-3xl lg:text-4xl font-black text-white shadow-glow">
-            ⭐ Top Athletes Using NILbx
+            ⚡ Top Sports Influencers
           </h2>
         </div>
 
@@ -46,11 +46,11 @@ export default function AthletesCarousel() {
                     </div>
                   </div>
                   <div className="text-center p-6 rounded-xl bg-gradient-to-br from-emerald-50/20 to-teal-50/20 border border-emerald-200/30">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                      {athlete.sponsors}
+                    <div className="text-2xl font-mono font-black text-emerald-300 mb-2">
+                      {athlete.earnings}
                     </div>
                     <div className="text-sm font-semibold text-emerald-200 uppercase tracking-wide">
-                      Sponsors
+                      Annual Earnings
                     </div>
                   </div>
                 </div>
@@ -59,23 +59,11 @@ export default function AthletesCarousel() {
                 <div className="flex gap-4 justify-center">
                   <Button variant="outline" size="sm" className="px-6 h-12 font-semibold border-blue-300/50 text-blue-300 hover:bg-blue-500/20">
                     <Eye className="w-4 h-4 mr-2" />
-                    Profile
+                    View Profile
                   </Button>
                   <Button size="sm" className="px-6 h-12 font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
                     <DollarSign className="w-4 h-4 mr-2" />
-                    Sponsor
-                  </Button>
-                </div>
-
-                {/* Buttons */}
-                <div className="flex gap-4 justify-center">
-                  <Button variant="outline" size="sm" className="px-6 h-12 font-semibold border-gray-300/50">
-                    <Eye className="w-4 h-4 mr-2" />
-                    Profile
-                  </Button>
-                  <Button size="sm" className="px-6 h-12 font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-                    <DollarSign className="w-4 h-4 mr-2" />
-                    Sponsor
+                    Collaborate
                   </Button>
                 </div>
               </div>

@@ -37,8 +37,8 @@ const HelpCenterPage = () => {
       const demoFaqs = [
         {
           id: 1,
-          question: 'What is NILbx?',
-          answer: 'NILbx is a comprehensive platform that empowers college athletes to monetize their personal brand through Name, Image, and Likeness (NIL) opportunities. We connect athletes with sponsors, fans, and opportunities while ensuring compliance with NCAA and state regulations.'
+          question: 'What is NILBx?',
+          answer: 'NILBx is a comprehensive platform that empowers college athletes to monetize their personal brand through Name, Image, and Likeness (NIL) opportunities. We connect athletes with sponsors, fans, and opportunities while ensuring compliance with NCAA and state regulations.'
         },
         {
           id: 2,
@@ -52,8 +52,8 @@ const HelpCenterPage = () => {
         },
         {
           id: 4,
-          question: 'Is NILbx compliant with NCAA regulations?',
-          answer: 'Yes, NILbx is fully compliant with NCAA NIL rules and state laws. We work closely with compliance officers and legal experts to ensure all opportunities meet regulatory requirements.'
+          question: 'Is NILBx compliant with NCAA regulations?',
+          answer: 'Yes, NILBx is fully compliant with NCAA NIL rules and state laws. We work closely with compliance officers and legal experts to ensure all opportunities meet regulatory requirements.'
         },
         {
           id: 5,
@@ -62,7 +62,7 @@ const HelpCenterPage = () => {
         },
         {
           id: 6,
-          question: 'What are the fees for using NILbx?',
+          question: 'What are the fees for using NILBx?',
           answer: 'For athletes: Free to join and list opportunities. We take a small percentage (5-10%) on successful sponsorship deals. For sponsors: Free to browse, small listing fees for premium placements.'
         }
       ];

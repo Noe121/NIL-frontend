@@ -99,6 +99,37 @@ class ApiService {
     };
   }
 
+  // Generic HTTP Methods
+  async get(url, client = 'api') {
+    const selectedClient = client === 'auth' ? this.authClient : (client === 'company' ? this.companyClient : this.apiClient);
+    const response = await selectedClient.get(url);
+    return response.data;
+  }
+
+  async post(url, data, client = 'api') {
+    const selectedClient = client === 'auth' ? this.authClient : (client === 'company' ? this.companyClient : this.apiClient);
+    const response = await selectedClient.post(url, data);
+    return response.data;
+  }
+
+  async put(url, data, client = 'api') {
+    const selectedClient = client === 'auth' ? this.authClient : (client === 'company' ? this.companyClient : this.apiClient);
+    const response = await selectedClient.put(url, data);
+    return response.data;
+  }
+
+  async patch(url, data, client = 'api') {
+    const selectedClient = client === 'auth' ? this.authClient : (client === 'company' ? this.companyClient : this.apiClient);
+    const response = await selectedClient.patch(url, data);
+    return response.data;
+  }
+
+  async delete(url, client = 'api') {
+    const selectedClient = client === 'auth' ? this.authClient : (client === 'company' ? this.companyClient : this.apiClient);
+    const response = await selectedClient.delete(url);
+    return response.data;
+  }
+
   // Initialize blockchain service with web3 context (only if feature is enabled)
   initializeBlockchainService(web3Context) {
     if (!config.features.blockchain) {
@@ -129,25 +160,71 @@ class ApiService {
     }
   }
 
-  // Athletes Management
-  async listAthletes(filters = {}) {
+  // ============================================================================
+  // INFLUENCER MANAGEMENT (New)
+  // ============================================================================
+
+  async listInfluencers(filters = {}) {
     const params = new URLSearchParams();
-    if (filters.sport) params.append('sport', filters.sport);
+    if (filters.niche_category) params.append('niche_category', filters.niche_category);
+    if (filters.tier) params.append('tier', filters.tier);
     if (filters.name) params.append('name', filters.name);
-    if (filters.available) params.append('available', filters.available);
     if (filters.limit) params.append('limit', filters.limit);
     if (filters.offset) params.append('offset', filters.offset);
 
     const queryString = params.toString();
-    const url = queryString ? `${this.endpoints.athletes}?${queryString}` : this.endpoints.athletes;
+    const url = queryString ? `/influencers?${queryString}` : '/influencers';
     const response = await this.apiClient.get(url);
-    return response.data.athletes;
+    return response.data.influencers;
   }
 
-  async searchAthletes(query) {
-    const response = await this.apiClient.get(`${this.endpoints.athletes}/search?q=${encodeURIComponent(query)}`);
-    return response.data.athletes;
+  async searchInfluencers(query) {
+    const response = await this.apiClient.get(`/influencers/search?q=${encodeURIComponent(query)}`);
+    return response.data.influencers;
   }
+
+  async getInfluencer(id) {
+    const response = await this.apiClient.get(`/influencers/${id}`);
+    return response.data.influencer;
+  }
+
+  async createInfluencer(data) {
+    const response = await this.apiClient.post('/influencers', data);
+    return response.data.influencer;
+  }
+
+  async updateInfluencer(id, data) {
+    const response = await this.apiClient.put(`/influencers/${id}`, data);
+    return response.data.influencer;
+  }
+
+  async deleteInfluencer(id) {
+    const response = await this.apiClient.delete(`/influencers/${id}`);
+    return response.data;
+  }
+
+  async updateInfluencerFollowers(id, followerCount) {
+    const response = await this.apiClient.post(`/influencers/${id}/update-followers`, { 
+      follower_count: followerCount 
+    });
+    return response.data;
+  }
+
+  async calculateInfluencerTier(followerCount) {
+    const response = await this.apiClient.post('/influencers/tier/calculate', { 
+      follower_count: followerCount 
+    });
+    return response.data;
+  }
+
+  async getTierBreakdown() {
+    const response = await this.apiClient.get('/influencers/tiers/breakdown');
+    return response.data;
+  }
+
+  // ============================================================================
+  // BACKWARD COMPATIBILITY: Athletes Methods (map to influencers)
+  // ============================================================================
 
   async getAthlete(id) {
     const response = await this.apiClient.get(`${this.endpoints.athletes}/${id}`);
@@ -167,6 +244,20 @@ class ApiService {
   async deleteAthlete(id) {
     const response = await this.apiClient.delete(`${this.endpoints.athletes}/${id}`);
     return response.data;
+  }
+
+  // ============================================================================
+  // LEGACY ATHLETES METHODS (Backward compatibility - now maps to influencers)
+  // ============================================================================
+
+  async listAthletes(filters = {}) {
+    // Map to influencers endpoint
+    return this.listInfluencers(filters);
+  }
+
+  async searchAthletes(query) {
+    // Map to influencers endpoint
+    return this.searchInfluencers(query);
   }
 
   // Sponsors Management

@@ -110,7 +110,7 @@ export default function CreateDeal() {
               </label>
               <textarea
                 name="requirement"
-                placeholder="1 Instagram post per week + tag @nilbx + story highlight featuring the hotspot"
+                placeholder="1 Instagram post per week + tag @NILBx + story highlight featuring the hotspot"
                 value={form.requirement}
                 onChange={(e) => setForm({ ...form, requirement: e.target.value })}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -135,7 +135,7 @@ export default function CreateDeal() {
             </button>
 
             <div className="text-center text-sm text-gray-500 space-y-1">
-              <p>💰 NILbx Service Fee: 20% (${(parseFloat(form.amount || 0) * 0.20).toFixed(2)})</p>
+              <p>💰 NILBx Service Fee: 20% (${(parseFloat(form.amount || 0) * 0.20).toFixed(2)})</p>
               <p>🏆 Athlete Receives: 80% (${(parseFloat(form.amount || 0) * 0.80).toFixed(2)})</p>
             </div>
           </form>

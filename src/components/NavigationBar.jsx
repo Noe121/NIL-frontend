@@ -9,8 +9,10 @@ import Button from './Button.jsx';
 const NavigationBar = () => {
   const { isAuthenticated, role, logout, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { isMobile } = useScreenSize();
   const mobileMenuRef = useRef(null);
+  const userMenuRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -26,6 +28,27 @@ const NavigationBar = () => {
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
+
+  const toggleUserMenu = () => {
+    setIsUserMenuOpen(!isUserMenuOpen);
+  };
+
+  const closeUserMenu = () => {
+    setIsUserMenuOpen(false);
+  };
+
+  // Close user menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        closeUserMenu();
+      }
+    };
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isUserMenuOpen]);
 
   // Touch gestures for mobile menu
   useTouchGestures(mobileMenuRef, {
@@ -51,6 +74,16 @@ const NavigationBar = () => {
         { path: '/sponsorships', label: 'My Sponsorships', icon: '🤝' },
         { path: '/schedule', label: 'Schedule', icon: '📅' },
         { path: '/analytics', label: 'Analytics', icon: '📈' }
+      ],
+      influencer: [
+        { path: '/dashboard/influencer', label: 'Influencer Dashboard', icon: '⭐' },
+        { path: '/influencer-opportunities', label: 'Opportunities', icon: '🎯' },
+        { path: '/influencer-analytics', label: 'Analytics', icon: '📈' }
+      ],
+      student_athlete: [
+        { path: '/dashboard/influencer', label: 'Influencer Dashboard', icon: '⭐' },
+        { path: '/influencer-opportunities', label: 'Opportunities', icon: '🎯' },
+        { path: '/influencer-analytics', label: 'Analytics', icon: '📈' }
       ],
       sponsor: [
         { path: '/athlete-search', label: 'Find Athletes', icon: '🔍' },
@@ -105,28 +138,24 @@ const NavigationBar = () => {
         Skip to main content
       </a>
       <nav data-testid="navigation-bar" aria-label="Main navigation" className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+      <div className="max-w-7xl mx-auto px-1 sm:px-2 lg:px-3">
+        <div className="flex items-center h-16 gap-1">
           {/* Logo */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center space-x-2"
+            className="flex items-center flex-shrink-0 -ml-2"
           >
-            <Link to="/" className="flex items-center space-x-2">
-              <img
-                src="/NILbx-logo.jpg"
-                alt="NILbx Logo"
-                className="h-8 w-auto"
-                style={{ maxHeight: '32px' }}
-              />
-              <span className="text-2xl font-bold text-blue-600">NILbx</span>
-              <span className="text-lg" role="img" aria-label="Trophy">🏆</span>
+            <Link to="/" className="flex items-center gap-1 hover:opacity-80 transition-opacity py-0">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
+                <span className="text-white font-black text-sm">NIL</span>
+              </div>
+              <span className="text-2xl font-black text-blue-600 whitespace-nowrap">NILBx</span>
             </Link>
           </motion.div>
 
           {/* Desktop Navigation */}
-          <div data-testid="desktop-navigation" className="hidden lg:flex items-center space-x-6">
+          <div data-testid="desktop-navigation" className="hidden lg:flex items-center gap-4">
             {navigationItems.slice(0, 6).map((item, index) => (
               <motion.div
                 key={item.path}
@@ -139,8 +168,11 @@ const NavigationBar = () => {
             ))}
           </div>
 
+          {/* Spacer */}
+          <div className="hidden lg:flex flex-1"></div>
+
           {/* Right side - Search, User Menu, Mobile Button */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-4 ml-auto">
             {/* Desktop Search */}
             {!isMobile && isAuthenticated && (
               <div className="hidden lg:block w-80">
@@ -151,29 +183,136 @@ const NavigationBar = () => {
               </div>
             )}
 
-            {/* Desktop User Menu */}
+            {/* Desktop User Menu Dropdown */}
             {isAuthenticated && (
-              <div className="hidden md:flex items-center space-x-4">
-                <div className="flex items-center space-x-2 px-3 py-1 bg-gray-100 rounded-full">
-                  <span className="text-sm text-gray-600">
-                    {role ? (role.charAt(0).toUpperCase() + role.slice(1)) : 'User'}
-                  </span>
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
+              <div ref={userMenuRef} className="hidden md:block relative">
+                <motion.button
+                  onClick={toggleUserMenu}
+                  className="flex items-center space-x-3 px-4 py-2 rounded-full bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-sm">
+                    <span className="text-white text-sm font-bold">
                       {user?.email?.charAt(0).toUpperCase() || 'U'}
                     </span>
                   </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="medium"
-                  onClick={handleLogout}
-                  className="text-gray-600 hover:text-red-600"
-                  icon="🚪"
-                  aria-label="Desktop logout button"
+                  <div className="text-left hidden sm:block">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {user?.name || user?.email?.split('@')[0] || 'User'}
+                    </p>
+                    <p className="text-xs text-gray-500 capitalize">
+                      {role ? role.replace('_', ' ') : 'User'}
+                    </p>
+                  </div>
+                  <motion.svg
+                    className="w-4 h-4 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    animate={{ rotate: isUserMenuOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </motion.svg>
+                </motion.button>
+
+                {/* User Menu Dropdown */}
+                <AnimatePresence>
+                  {isUserMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden"
+                    >
+                      {/* User Info Section */}
+                      <div className="px-4 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-sm">
+                            <span className="text-white font-bold text-sm">
+                              {user?.email?.charAt(0).toUpperCase() || 'U'}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate">
+                              {user?.name || user?.email?.split('@')[0] || 'User'}
+                            </p>
+                            <p className="text-xs text-gray-600 truncate">
+                              {user?.email}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="inline-block mt-3 px-3 py-1 bg-white rounded-full">
+                          <span className="text-xs font-semibold text-blue-600 capitalize">
+                            {role ? role.replace('_', ' ') : 'User'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Menu Items */}
+                      <div className="py-2">
+                        <Link
+                          to="/profile"
+                          onClick={closeUserMenu}
+                          className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-150 text-sm"
+                        >
+                          <span className="text-lg">👤</span>
+                          <span className="font-medium">View Profile</span>
+                        </Link>
+                        <Link
+                          to="/dashboard"
+                          onClick={closeUserMenu}
+                          className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-150 text-sm"
+                        >
+                          <span className="text-lg">📊</span>
+                          <span className="font-medium">Dashboard</span>
+                        </Link>
+                        <Link
+                          to="/help"
+                          onClick={closeUserMenu}
+                          className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-150 text-sm"
+                        >
+                          <span className="text-lg">🆘</span>
+                          <span className="font-medium">Help & Support</span>
+                        </Link>
+                      </div>
+
+                      {/* Logout Section */}
+                      <div className="border-t border-gray-100 py-2">
+                        <button
+                          onClick={() => {
+                            closeUserMenu();
+                            handleLogout();
+                          }}
+                          className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors duration-150 text-sm font-medium"
+                        >
+                          <span className="text-lg">🚪</span>
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {/* Non-authenticated Auth Buttons */}
+            {!isAuthenticated && (
+              <div className="hidden md:flex items-center space-x-3">
+                <Link
+                  to="/auth"
+                  className="px-4 py-2 text-blue-600 font-semibold hover:text-blue-700 transition-colors duration-200"
                 >
-                  Logout
-                </Button>
+                  Sign In
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-blue-200 transition-all duration-200"
+                >
+                  Sign Up
+                </Link>
               </div>
             )}
 
