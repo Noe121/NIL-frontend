@@ -29,6 +29,7 @@ class AuthService {
         headers: {
           'Accept': 'application/json',
         },
+        credentials: 'include',
         body: formData
       });      if (!response.ok) {
         const error = await response.json();

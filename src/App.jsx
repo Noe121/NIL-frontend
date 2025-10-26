@@ -2,6 +2,7 @@ import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import { ApiProvider } from './contexts/ApiContext.jsx';
+import { Web3Provider } from './contexts/Web3Context.jsx';
 import { useAuth } from './hooks/useAuth.js';
 import { config, utils, APP_MODE, IS_CENTRALIZED, IS_DEV } from './utils/config.js';
 
@@ -67,7 +68,9 @@ export function SafeProvider({ children }) {
     return (
       <AuthProvider>
         <ApiProvider>
-          {children}
+          <Web3Provider>
+            {children}
+          </Web3Provider>
         </ApiProvider>
       </AuthProvider>
     );

@@ -51,12 +51,22 @@ export default function Auth() {
         const userData = {
           id: result.user.id,
           email: result.user.email || form.email,
-          role: result.role,
+          role: result.user.role || result.role,
           name: result.user.name || result.user.email?.split('@')[0]
         };
-        
+
         login(result.token, userData);
-        navigate('/dashboard');
+
+        // Redirect based on user role
+        const roleRoutes = {
+          athlete: '/dashboard/athlete',
+          influencer: '/dashboard/influencer',
+          sponsor: '/dashboard/sponsor',
+          fan: '/dashboard/fan',
+          admin: '/dashboard/athlete' // Default to athlete dashboard for admin
+        };
+
+        navigate(roleRoutes[userData.role] || '/dashboard/athlete');
       } else {
         setErrors({ submit: result.error || 'Login failed' });
       }
