@@ -1,11 +1,48 @@
 
 # NILBx Frontend 🏆
 
-A modern React/Vite frontend for the NILBx platform - connecting athletes, sponsors, and fans through Name, Image, and Likeness (NIL) deals. Features secure JWT authentication, per-service architecture integration, blockchain integration, and cloud deployment on AWS.
+A modern React/Vite frontend for the NILBx platform - connecting athletes, sponsors, and fans through Name, Image, and Likeness (NIL) deals. Features secure JWT authentication, per-service architecture integration, **complete contract system**, blockchain integration, and cloud deployment on AWS.
 
 **Live Demo**: [https://nilbx.com](https://nilbx.com) ✅
 
+**Latest Update (October 26, 2025):** ✨ **Complete Contract System Implementation**
+- ✅ Dual contract types (Traditional + Web3)
+- ✅ Athlete vs Influencer support
+- ✅ Real-time payout calculations
+- ✅ NCAA compliance integration
+- ✅ Feature flag controlled rollout
+
 This frontend integrates with microservices backend APIs and is hosted statically on S3 via CloudFront for global performance.
+
+## 🎉 What's New - October 26, 2025
+
+### Complete Contract System
+**8 New Components** + **2 Custom Hooks** for end-to-end sponsorship deal flow:
+
+```javascript
+// Traditional contract creation (95% of deals)
+<CreateDealModal targetUser={athlete} onSuccess={handleSuccess} />
+
+// Web3 premium contracts (5% - feature flag controlled)
+<CreateDealWeb3Modal targetUser={athlete} />
+
+// Payout calculation
+const { payout, platformFee } = usePaymentCalculation({
+  amount: 1000,
+  tierMultiplier: 5.0
+});
+// Returns: $3,883.70 payout with $200 platform fee
+```
+
+**Key Features:**
+- 🤝 **Traditional Contracts**: PDF-based, Stripe integration, 3-second creation
+- 🔗 **Web3 Contracts**: Smart contracts on Polygon, NFT minting, USDC payments
+- 👥 **Athlete vs Influencer**: Different tier systems and conditional UI
+- 📊 **5-Tier Payout System**: 0.575x → 5.0x multiplier based on followers
+- ✅ **NCAA Compliance**: Automatic Rule 12.4.1 checks for student-athletes
+- 🎚️ **Feature Flags**: Safe rollout with server-side control
+
+**See:** [Contract Implementation Guide](../FRONTEND_CONTRACT_IMPLEMENTATION_2025-10-26.md)
 
 ## ✨ Core Features
 
@@ -27,45 +64,95 @@ This frontend integrates with microservices backend APIs and is hosted staticall
 - **Smart Contracts**: Sponsorship contract interactions
 - **Ethereum Networks**: Support for mainnet and test networks
 
-### 💳 Viral Payment System
-- **Complete Deal Management**: Create, claim, and manage NIL deals with Stripe integration
-- **20% Service Fee Model**: Transparent fee structure with athlete payouts
-- **Future Deal Pre-signing**: Early commitment system for upcoming NIL opportunities
-- **Feature Flag Control**: Safe rollout of payment methods without disrupting users
-- **Payment Processors**: Abstracted architecture for easy provider switching
-- **Deal Pages**: Dedicated CreateDeal, ClaimDeal, and FutureDeals pages
+### 💳 Complete Contract & Payment System
+**Latest Update:** October 26, 2025 - Full contract system implementation
 
-#### Payment Feature Flags
-- `VITE_ENABLE_TRADITIONAL_PAYMENTS=true`: Enables PayPal and Stripe payment options
-- `VITE_ENABLE_BLOCKCHAIN_PAYMENTS=false`: Enables blockchain/crypto payment options
-- **Rollout Strategy**: Gradual adoption with A/B testing and quick rollback capability
+#### **Dual Contract System**
+- **Traditional Contracts (95% of deals)**: PDF-based contracts with Stripe/PayPal integration
+- **Web3 Smart Contracts (5% premium)**: On-chain contracts with NFT collectibles
+- **Athlete vs Influencer Support**: Conditional UI and tier systems
+- **Feature Flag Controlled**: Safe rollout with `enable_web3_sponsorship` flag
 
-#### Payment Architecture
-The payment system uses an abstracted processor pattern:
-- **PaymentService**: Main service managing payment methods and routing
-- **PaymentProcessor Interface**: Abstract base class for payment providers
-- **Concrete Processors**: StripeProcessor, PayPalProcessor, BlockchainProcessor
-- **Feature Flag Integration**: Dynamic enabling/disabling of payment methods
-- **Fallback Mechanism**: Automatic fallback to default processor on failures
+#### **Contract Features**
+- **Real-time Payout Calculation**: 5-tier multiplier system (0.575x - 5.0x)
+- **NCAA Compliance**: Automatic compliance checks for student-athletes
+- **Deal Management**: Complete acceptance/rejection flow
+- **Smart Contract Deployment**: Polygon-based NFT minting
+- **20% Platform Fee**: Transparent fee structure with tier bonuses
 
-#### Usage Example
+#### **Contract Flow Components**
 ```javascript
-import paymentService from './services/paymentService.js';
+// Traditional contract creation
+import CreateDealModal from './components/Contracts/CreateDealModal';
 
-// Get available payment methods (based on feature flags)
-const methods = paymentService.getAvailablePaymentMethods();
-// Returns: [{ id: 'stripe', name: 'Credit Card (Stripe)', processor: 'stripe' }, ...]
+<CreateDealModal
+  targetUser={athlete}
+  onClose={() => setShowModal(false)}
+  onSuccess={(deal) => alert(`Deal #${deal.id} created!`)}
+/>
 
-// Process a payment
-const result = await paymentService.processPayment(100, 'USD', 'stripe', {
-  cardToken: 'tok_123'
+// Web3 contract creation (premium)
+import CreateDealWeb3Modal from './components/Contracts/CreateDealWeb3Modal';
+
+<CreateDealWeb3Modal
+  targetUser={athlete}
+  onClose={() => setShowWeb3Modal(false)}
+/>
+
+// Payout calculation hook
+import { usePaymentCalculation } from './hooks/usePaymentCalculation';
+
+const { payout, platformFee } = usePaymentCalculation({
+  amount: 1000,
+  userId: athlete.id,
+  tierMultiplier: 5.0
 });
-
-// Check if payments are enabled
-if (paymentService.isPaymentsEnabled()) {
-  // Show payment UI
-}
+// Returns: { payout: 3883.70, platformFee: 200 }
 ```
+
+#### **Feature Flags**
+- `enable_traditional_sponsorship` (true): Traditional PDF contracts
+- `enable_web3_sponsorship` (false): Smart contracts + NFTs
+- `enable_ncaa_compliance` (true): NCAA Rule 12.4.1 checks
+- `enable_stripe_payments` (true): Stripe integration
+- `enable_paypal_payments` (true): PayPal integration
+- `enable_crypto_payments` (false): USDC/ETH payments
+
+#### **Contract Architecture**
+```
+components/Contracts/
+├── CreateDealModal.jsx           - Traditional contracts
+├── CreateDealWeb3Modal.jsx       - Web3 smart contracts
+├── NCAAComplianceWarning.jsx     - Athlete compliance UI
+├── InstantPayoutBadge.jsx        - Influencer payout badge
+├── PayoutBreakdown.jsx           - Payout display
+└── DealAcceptanceCard.jsx        - Deal acceptance flow
+
+hooks/
+├── usePaymentCalculation.js      - Payout calculations
+└── useFeatureFlags.js            - Feature flag management
+
+pages/
+├── DealsPage.jsx                 - Deal management dashboard
+└── MarketplacePage.jsx           - Browse athletes/influencers
+```
+
+#### **Payout Calculation Example**
+```javascript
+// $1,000 deal, MEGA tier (5.0x multiplier)
+Deal Amount:          $1,000.00
+Platform Fee (20%):   -$200.00
+Sponsor Share:         $800.00
+Tier Multiplier:       ×5.0
+Base Payout:          $4,000.00
+Stripe Fee (2.9%):    -$116.30
+Final Athlete Payout: $3,883.70
+```
+
+#### **Documentation**
+- [Contract Flow Documentation](../CONTRACT_FLOW_DOCUMENTATION_2025-10-26.md)
+- [Frontend Implementation Guide](../FRONTEND_CONTRACT_IMPLEMENTATION_2025-10-26.md)
+- [Quick Start Guide](./QUICKSTART_CONTRACTS.md)
 
 ### 🎨 Modern User Interface
 - **Component Library**: 12+ production-ready React components
@@ -145,9 +232,22 @@ VITE_DEBUG_MODE=true
 frontend/
 ├── src/
 │   ├── components/          # Reusable React components
+│   │   ├── Contracts/      # ✨ NEW - Contract system (Oct 2025)
+│   │   │   ├── CreateDealModal.jsx
+│   │   │   ├── CreateDealWeb3Modal.jsx
+│   │   │   ├── NCAAComplianceWarning.jsx
+│   │   │   ├── InstantPayoutBadge.jsx
+│   │   │   ├── PayoutBreakdown.jsx
+│   │   │   └── DealAcceptanceCard.jsx
+│   │   ├── Marketplace/    # ✨ NEW - Marketplace components
+│   │   │   └── UserProfileCard.jsx
 │   │   ├── auth/           # Authentication components
 │   │   ├── blockchain/     # Web3 integration components
 │   │   └── ui/            # Common UI components
+│   ├── hooks/             # ✨ NEW - Custom React hooks
+│   │   ├── usePaymentCalculation.js  # Payout calculations
+│   │   ├── useFeatureFlags.js        # Feature flags
+│   │   └── useAuth.js                # Authentication
 │   ├── services/           # API integration services
 │   │   ├── api.js         # Core API service
 │   │   ├── authService.js  # Authentication service
@@ -163,14 +263,17 @@ frontend/
 │   │   ├── SponsorUserPage.jsx
 │   │   └── FanUserPage.jsx
 │   ├── pages/             # Route-based page components
+│   │   ├── DealsPage.jsx      # ✨ NEW - Deal management dashboard
 │   │   ├── CreateDeal.jsx     # Deal creation with Stripe checkout
 │   │   ├── ClaimDeal.jsx      # Deal claiming for athletes
-│   │   └── FutureDeals.jsx    # Future deal pre-signing
+│   │   ├── FutureDeals.jsx    # Future deal pre-signing
+│   │   └── MarketplacePage.jsx # Browse athletes/influencers
 ├── public/                # Static assets
 ├── tests/                 # Test files (390+ tests)
 │   ├── components/        # Component unit tests
 │   ├── utils/            # Utility function tests
 │   └── integration/      # End-to-end tests
+├── QUICKSTART_CONTRACTS.md # ✨ NEW - Contract system quick reference
 ├── vite.config.js         # Vite configuration
 ├── vitest.config.js       # Testing configuration
 └── package.json          # Dependencies and scripts
@@ -709,13 +812,91 @@ npm run build:per-service      # Build for per-service mode
 npm run build:production       # Build for production deployment
 
 # Testing
-npm test                       # Run full test suite
+npm test                       # Run full test suite (201 tests)
 npm run test:coverage          # Generate coverage report
+npm run test:ui               # Open Vitest UI for visual testing
 
 # Environment Management
 npm run setup:per-service      # Setup per-service mode
 npm run switch:per-service     # Switch to per-service mode
 npm run toggle:blockchain      # Toggle blockchain features
+```
+
+### Quick Start Examples
+
+#### **Create a Traditional Deal**
+```javascript
+import { useState } from 'react';
+import CreateDealModal from './components/Contracts/CreateDealModal';
+
+function SponsorButton({ athlete }) {
+  const [showModal, setShowModal] = useState(false);
+
+  return (
+    <>
+      <button onClick={() => setShowModal(true)}>
+        Sponsor @{athlete.username}
+      </button>
+
+      {showModal && (
+        <CreateDealModal
+          targetUser={athlete}
+          onClose={() => setShowModal(false)}
+          onSuccess={(deal) => console.log('Deal created:', deal)}
+        />
+      )}
+    </>
+  );
+}
+```
+
+#### **Accept a Deal (Athlete)**
+```javascript
+import DealAcceptanceCard from './components/Contracts/DealAcceptanceCard';
+
+function MyDeals({ pendingDeals }) {
+  const handleAccept = async (dealId) => {
+    await fetch(`/api/v1/deals/${dealId}/accept`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ accept_terms: true })
+    });
+  };
+
+  return pendingDeals.map(deal => (
+    <DealAcceptanceCard
+      key={deal.id}
+      deal={deal}
+      onAccept={handleAccept}
+      onReject={handleReject}
+    />
+  ));
+}
+```
+
+#### **Calculate Payouts**
+```javascript
+import { usePaymentCalculation } from './hooks/usePaymentCalculation';
+
+function DealPreview({ athlete, amount }) {
+  const { payout, platformFee, loading } = usePaymentCalculation({
+    amount,
+    userId: athlete.id,
+    tierMultiplier: athlete.tier_multiplier
+  });
+
+  if (loading) return <Spinner />;
+
+  return (
+    <div>
+      <p>Platform Fee: ${platformFee}</p>
+      <p>Athlete Gets: ${payout}</p>
+    </div>
+  );
+}
 ```
 
 ### Development Features

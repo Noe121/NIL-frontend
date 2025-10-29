@@ -1,9 +1,12 @@
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { GlassLogo, GradientLogo } from '../DynamicLogo';
+import { useSchoolColors } from '../../hooks/useSchoolColors';
 
 export default function Hero() {
   const navigate = useNavigate();
+  const { schoolKey } = useSchoolColors();
 
   const handleStartEarning = () => {
     navigate('/register');
@@ -32,12 +35,8 @@ export default function Hero() {
 
         {/* Main headline */}
         <div className="inline-flex flex-col items-center mb-12">
-          <div className="w-32 h-32 glass rounded-full flex items-center justify-center shadow-glow mb-8 backdrop-blur-sm">
-            <span className="text-5xl font-black text-blue-400">NIL</span>
-          </div>
-          <h1 className="text-6xl lg:text-8xl font-black leading-none mb-6">
-            <span className="block text-gradient drop-shadow-2xl">NILBx</span>
-          </h1>
+          <GlassLogo schoolKey={schoolKey} className="mb-8" />
+          <GradientLogo schoolKey={schoolKey} size="hero" className="mb-6" />
           <p className="text-3xl lg:text-4xl font-bold text-white/90">
             Turn Talent Into <span className="text-gradient text-4xl lg:text-5xl">$</span>
           </p>

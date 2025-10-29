@@ -1,15 +1,24 @@
-const Footer = () => (
-  <footer className="bg-gradient-to-br from-slate-900 to-blue-900/30 border-t border-white/10">
-    <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16">
-      <div className="grid lg:grid-cols-4 gap-12">
-        {/* Brand */}
-        <div className="lg:col-span-2">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-black text-xl">NIL</span>
+import React from 'react';
+import DynamicLogo from '../DynamicLogo';
+import { useSchoolColors } from '../../hooks/useSchoolColors';
+
+const Footer = () => {
+  const { schoolKey } = useSchoolColors();
+
+  return (
+    <footer className="bg-gradient-to-br from-slate-900 to-blue-900/30 border-t border-white/10">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16">
+        <div className="grid lg:grid-cols-4 gap-12">
+          {/* Brand */}
+          <div className="lg:col-span-2">
+            <div className="mb-6">
+              <DynamicLogo
+                schoolKey={schoolKey}
+                size="lg"
+                variant="full"
+                className="text-white"
+              />
             </div>
-            <span className="text-2xl font-black text-white">NILBx</span>
-          </div>
           <p className="text-blue-200 mb-8 max-w-md leading-relaxed">
             The premier platform connecting student-athletes with brands and sponsors.
             Unlock your earning potential while maintaining academic excellence.
@@ -72,6 +81,7 @@ const Footer = () => (
       </div>
     </div>
   </footer>
-);
+  );
+};
 
 export default Footer;

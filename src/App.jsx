@@ -42,6 +42,7 @@ const ErrorPage = lazy(() => import('./pages/ErrorPage.jsx'));
 const CreateDeal = lazy(() => import('./pages/CreateDeal.jsx'));
 const ClaimDeal = lazy(() => import('./pages/ClaimDeal.jsx'));
 const FutureDeals = lazy(() => import('./pages/FutureDeals.jsx'));
+const DealsPage = lazy(() => import('./pages/DealsPage.jsx'));
 
 // Components
 import NavBar from './components/NavBar.jsx';
@@ -145,6 +146,11 @@ export default function App() {
             <Route path="/future-deals" element={
               <ProtectedRoute role="athlete">
                 <FutureDeals />
+              </ProtectedRoute>
+            } />
+            <Route path="/deals" element={
+              <ProtectedRoute roles={['athlete', 'influencer', 'student_athlete']}>
+                <DealsPage />
               </ProtectedRoute>
             } />
             <Route path="/community" element={

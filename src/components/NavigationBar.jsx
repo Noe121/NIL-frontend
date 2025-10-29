@@ -5,12 +5,15 @@ import { useAuth } from '../hooks/useAuth.js';
 import { useScreenSize, useTouchGestures, MobileDrawer } from '../utils/responsive.jsx';
 import SearchComponent from './SearchComponent.jsx';
 import Button from './Button.jsx';
+import DynamicLogo from './DynamicLogo.jsx';
+import { useSchoolColors } from '../hooks/useSchoolColors.js';
 
 const NavigationBar = () => {
   const { isAuthenticated, role, logout, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { isMobile } = useScreenSize();
+  const { schoolKey } = useSchoolColors();
   const mobileMenuRef = useRef(null);
   const userMenuRef = useRef(null);
   const location = useLocation();
@@ -146,11 +149,8 @@ const NavigationBar = () => {
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center flex-shrink-0 -ml-2"
           >
-            <Link to="/" className="flex items-center gap-1 hover:opacity-80 transition-opacity py-0">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
-                <span className="text-white font-black text-sm">NIL</span>
-              </div>
-              <span className="text-2xl font-black text-blue-600 whitespace-nowrap">NILBx</span>
+            <Link to="/" className="hover:opacity-80 transition-opacity py-0">
+              <DynamicLogo schoolKey={schoolKey} size="md" variant="full" />
             </Link>
           </motion.div>
 
