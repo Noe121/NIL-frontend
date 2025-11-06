@@ -89,6 +89,7 @@ const SocialVerification = ({
 
       <div className="space-y-4">
         <FormField
+          name="social-media-post-url"
           label="Social Media Post URL"
           type="url"
           value={socialUrl}

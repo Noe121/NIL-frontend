@@ -343,4 +343,3 @@ function normalizeSchoolName(universityName) {
     .replace(/^-|-$/g, '');
 }
 
-export default useSchoolColors;
