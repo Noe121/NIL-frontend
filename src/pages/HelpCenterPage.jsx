@@ -345,6 +345,9 @@ const HelpCenterPage = () => {
                 <a href="/guidelines" className="block text-blue-600 hover:text-blue-800 text-sm">
                   Community Guidelines
                 </a>
+                <a href="/privacy-settings" className="block text-blue-600 hover:text-blue-800 text-sm">
+                  Privacy Settings
+                </a>
                 {config.features.blockchain && (
                   <a href="/blockchain-guide" className="block text-blue-600 hover:text-blue-800 text-sm">
                     Blockchain Guide

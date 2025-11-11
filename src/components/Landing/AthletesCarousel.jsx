@@ -41,7 +41,7 @@ export default function AthletesCarousel() {
                     <div className="text-3xl font-mono font-black text-blue-300 mb-2">
                       {athlete.followers}
                     </div>
-                    <div className="text-sm font-semibold text-blue-200 uppercase tracking-wide">
+                    <div className="text-sm font-semibold text-slate-300 uppercase tracking-wide">
                       Followers
                     </div>
                   </div>

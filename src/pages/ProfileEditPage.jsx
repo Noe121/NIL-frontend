@@ -22,7 +22,11 @@ export default function ProfileEditPage() {
     company: '',
     sponsorships: '',
     fanInterests: '',
-    favoriteTeams: ''
+    favoriteTeams: '',
+    // Compliance fields for athletes
+    age: '',
+    school: '',
+    state: ''
   });
 
   useEffect(() => {
@@ -72,7 +76,39 @@ export default function ProfileEditPage() {
       setError('Email is required');
       return false;
     }
-    // Add more validation as needed
+
+    // Athlete-specific validation
+    if (user?.role === 'athlete') {
+      if (!formData.age || parseInt(formData.age) < 6) {
+        setError('Valid age is required for athletes');
+        return false;
+      }
+      if (!formData.school.trim()) {
+        setError('School is required for athletes');
+        return false;
+      }
+      if (!formData.state) {
+        setError('State is required for athletes');
+        return false;
+      }
+      if (!formData.sport) {
+        setError('Sport is required for athletes');
+        return false;
+      }
+    }
+
+    // Sponsor-specific validation
+    if (user?.role === 'sponsor' && !formData.company.trim()) {
+      setError('Company name is required for sponsors');
+      return false;
+    }
+
+    // Fan-specific validation
+    if (user?.role === 'fan' && !formData.favoriteTeams.trim()) {
+      setError('Favorite team is required for fans');
+      return false;
+    }
+
     return true;
   };
 
@@ -106,6 +142,115 @@ export default function ProfileEditPage() {
       case 'athlete':
         return (
           <>
+            {/* Compliance Information Section */}
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="text-lg font-medium text-blue-900 mb-3">Compliance Information</h3>
+              <p className="text-sm text-blue-700 mb-4">
+                This information is required for NIL compliance and cannot be changed without validation.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">
+                    Age *
+                  </label>
+                  <input
+                    type="number"
+                    id="age"
+                    name="age"
+                    value={formData.age}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min="6"
+                    max="100"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="school" className="block text-sm font-medium text-gray-700 mb-1">
+                    School *
+                  </label>
+                  <input
+                    type="text"
+                    id="school"
+                    name="school"
+                    value={formData.school}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Your school name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
+                    State *
+                  </label>
+                  <select
+                    id="state"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">Select State</option>
+                    <option value="AL">Alabama</option>
+                    <option value="AK">Alaska</option>
+                    <option value="AZ">Arizona</option>
+                    <option value="AR">Arkansas</option>
+                    <option value="CA">California</option>
+                    <option value="CO">Colorado</option>
+                    <option value="CT">Connecticut</option>
+                    <option value="DE">Delaware</option>
+                    <option value="FL">Florida</option>
+                    <option value="GA">Georgia</option>
+                    <option value="HI">Hawaii</option>
+                    <option value="ID">Idaho</option>
+                    <option value="IL">Illinois</option>
+                    <option value="IN">Indiana</option>
+                    <option value="IA">Iowa</option>
+                    <option value="KS">Kansas</option>
+                    <option value="KY">Kentucky</option>
+                    <option value="LA">Louisiana</option>
+                    <option value="ME">Maine</option>
+                    <option value="MD">Maryland</option>
+                    <option value="MA">Massachusetts</option>
+                    <option value="MI">Michigan</option>
+                    <option value="MN">Minnesota</option>
+                    <option value="MS">Mississippi</option>
+                    <option value="MO">Missouri</option>
+                    <option value="MT">Montana</option>
+                    <option value="NE">Nebraska</option>
+                    <option value="NV">Nevada</option>
+                    <option value="NH">New Hampshire</option>
+                    <option value="NJ">New Jersey</option>
+                    <option value="NM">New Mexico</option>
+                    <option value="NY">New York</option>
+                    <option value="NC">North Carolina</option>
+                    <option value="ND">North Dakota</option>
+                    <option value="OH">Ohio</option>
+                    <option value="OK">Oklahoma</option>
+                    <option value="OR">Oregon</option>
+                    <option value="PA">Pennsylvania</option>
+                    <option value="RI">Rhode Island</option>
+                    <option value="SC">South Carolina</option>
+                    <option value="SD">South Dakota</option>
+                    <option value="TN">Tennessee</option>
+                    <option value="TX">Texas</option>
+                    <option value="UT">Utah</option>
+                    <option value="VT">Vermont</option>
+                    <option value="VA">Virginia</option>
+                    <option value="WA">Washington</option>
+                    <option value="WV">West Virginia</option>
+                    <option value="WI">Wisconsin</option>
+                    <option value="WY">Wyoming</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
             <div>
               <label htmlFor="sport" className="block text-sm font-medium text-gray-700 mb-1">
                 Sport *

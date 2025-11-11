@@ -50,6 +50,10 @@ class AuthService {
         const user = this.getUserFromToken();
         const role = this.getRoleFromToken();
 
+        console.log('Login response data:', data);
+        console.log('Extracted user:', user);
+        console.log('Extracted role:', role);
+
         return {
           success: true,
           user: user,
@@ -336,6 +340,8 @@ class AuthService {
 
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
+      console.log('JWT payload:', payload);
+      console.log('Role from token:', payload.role);
       return payload.role || null;
     } catch (error) {
       console.error('Token role extraction error:', error);

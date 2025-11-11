@@ -19,7 +19,7 @@ const Footer = () => {
                 className="text-white"
               />
             </div>
-          <p className="text-blue-200 mb-8 max-w-md leading-relaxed">
+          <p className="text-slate-300 mb-8 max-w-md leading-relaxed">
             The premier platform connecting student-athletes with brands and sponsors.
             Unlock your earning potential while maintaining academic excellence.
           </p>
@@ -47,7 +47,7 @@ const Footer = () => {
               { label: "For Agencies", href: "/agency" }
             ].map((link) => (
               <li key={link.label}>
-                <a href={link.href} className="text-blue-200 hover:text-blue-400 transition-colors duration-300">
+                <a href={link.href} className="text-slate-300 hover:text-blue-400 transition-colors duration-300">
                   {link.label}
                 </a>
               </li>
@@ -61,7 +61,7 @@ const Footer = () => {
           <ul className="space-y-4">
             {["Help Center", "Contact Us", "Privacy Policy", "Terms of Service"].map((link) => (
               <li key={link}>
-                <a href="#" className="text-blue-200 hover:text-blue-400 transition-colors duration-300">
+                <a href="#" className="text-slate-300 hover:text-blue-400 transition-colors duration-300">
                   {link}
                 </a>
               </li>

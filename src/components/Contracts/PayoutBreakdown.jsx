@@ -38,7 +38,7 @@ export default function PayoutBreakdown({
         </div>
 
         <div className="flex justify-between text-sm">
-          <span className="text-gray-700">Platform Fee (20%):</span>
+          <span className="text-gray-700">Platform Fee ({(platformFee / dealAmount * 100).toFixed(1)}%):</span>
           <span className="font-semibold text-red-600">
             -${platformFee.toLocaleString()}
           </span>

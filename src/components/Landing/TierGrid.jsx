@@ -42,7 +42,7 @@ export default function TierGrid() {
           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
             Earn More as You Grow
           </h2>
-          <p className="text-xl text-blue-200 max-w-3xl mx-auto">
+          <p className="text-xl text-slate-300 max-w-3xl mx-auto">
             Our tiered system rewards your growth. Higher followers = higher payouts.
           </p>
         </div>

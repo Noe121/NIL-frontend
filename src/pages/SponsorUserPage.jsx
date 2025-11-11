@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth.js';
 import { useApi } from '../hooks/useApi.js';
 import SponsorshipTasks from '../components/SponsorshipTasks.jsx';
 import SearchComponent from '../components/SearchComponent.jsx';
+import WorkflowTemplates from '../components/WorkflowTemplates.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import { toast } from 'react-toastify';
 
@@ -14,6 +15,8 @@ const SponsorUserPage = () => {
   const [analytics, setAnalytics] = useState(null);
   const [activeSponshorships, setActiveSponshorships] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [templatesExpanded, setTemplatesExpanded] = useState(false);
+  const [influencerTemplatesExpanded, setInfluencerTemplatesExpanded] = useState(false);
 
   useEffect(() => {
     if (!user || user.role !== 'sponsor') {
@@ -53,12 +56,77 @@ const SponsorUserPage = () => {
     }
   };
 
+  const handleInfluencerSelect = (influencer) => {
+    // Redirect to influencer profile
+    if (influencer.user_id) {
+      navigate(`/influencer/${influencer.user_id}`);
+    }
+  };
+
   if (isLoading) {
     return <LoadingSpinner />;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Welcome Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to Your Sponsor Dashboard</h1>
+        <p className="text-lg text-gray-600">
+          Manage your sponsorship deals and discover new talent
+        </p>
+      </div>
+
+      {/* Athlete Workflow Templates - Collapsible */}
+      <div className="mb-8">
+        <button
+          onClick={() => setTemplatesExpanded(!templatesExpanded)}
+          className="w-full flex items-center justify-between p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center space-x-3">
+            <span className="text-2xl">📋</span>
+            <div className="text-left">
+              <h2 className="text-xl font-bold text-gray-900">Athlete Workflow Templates</h2>
+              <p className="text-sm text-gray-600">Choose from our comprehensive collection of NIL deal templates</p>
+            </div>
+          </div>
+          <span className={`transform transition-transform ${templatesExpanded ? 'rotate-180' : ''}`}>
+            ▼
+          </span>
+        </button>
+
+        {templatesExpanded && (
+          <div className="mt-4">
+            <WorkflowTemplates />
+          </div>
+        )}
+      </div>
+
+      {/* Influencers Section */}
+      <div className="mb-8">
+        <button
+          onClick={() => setInfluencerTemplatesExpanded(!influencerTemplatesExpanded)}
+          className="w-full flex items-center justify-between p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center space-x-3">
+            <span className="text-2xl">📱</span>
+            <div className="text-left">
+              <h2 className="text-xl font-bold text-gray-900">Influencers</h2>
+              <p className="text-sm text-gray-600">Choose from our collection of influencer partnership templates</p>
+            </div>
+          </div>
+          <span className={`transform transition-transform ${influencerTemplatesExpanded ? 'rotate-180' : ''}`}>
+            ▼
+          </span>
+        </button>
+
+        {influencerTemplatesExpanded && (
+          <div className="mt-4">
+            <WorkflowTemplates workflowType="influencer" />
+          </div>
+        )}
+      </div>
+
       {/* Search Section */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold mb-4">Find Athletes</h2>

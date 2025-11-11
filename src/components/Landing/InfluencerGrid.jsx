@@ -112,7 +112,7 @@ export default function InfluencerGrid({ filters = [] }) {
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-3">
             Top Creators Ready to Collaborate
           </h2>
-          <p className="text-lg text-blue-200">
+          <p className="text-lg text-slate-300">
             {filteredInfluencers.length} creator{filteredInfluencers.length !== 1 ? 's' : ''} available
             {filters.length > 0 && ` in selected niches`}
           </p>

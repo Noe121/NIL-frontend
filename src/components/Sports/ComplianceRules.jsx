@@ -45,7 +45,7 @@ const ComplianceRules = () => {
           <h2 className="text-4xl lg:text-5xl font-black text-white mb-6">
             Compliance Rules & Requirements
           </h2>
-          <p className="text-xl text-blue-200 max-w-3xl mx-auto">
+          <p className="text-xl text-white max-w-3xl mx-auto">
             Student-athletes have additional compliance rules compared to general influencers. We handle everything.
           </p>
         </div>
@@ -78,7 +78,7 @@ const ComplianceRules = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-white text-lg mb-1">{item.rule}</h3>
-                      <p className="text-blue-200 text-sm">{item.desc}</p>
+                      <p className="text-white text-sm">{item.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -110,7 +110,7 @@ const ComplianceRules = () => {
                   "Limited deal types",
                   "Mandatory contract review"
                 ].map((item, i) => (
-                  <li key={i} className="flex gap-3 text-blue-200">
+                  <li key={i} className="flex gap-3 text-white">
                     <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                     <span>{item}</span>
                   </li>
@@ -134,7 +134,7 @@ const ComplianceRules = () => {
                   "More deal opportunities",
                   "Faster contract process"
                 ].map((item, i) => (
-                  <li key={i} className="flex gap-3 text-blue-200">
+                  <li key={i} className="flex gap-3 text-white">
                     <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
                     <span>{item}</span>
                   </li>
@@ -164,15 +164,15 @@ const ComplianceRules = () => {
           <div className="grid sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
             <div>
               <div className="text-3xl font-black text-emerald-300 mb-2">99.8%</div>
-              <div className="text-blue-200 font-semibold">Compliance Rate</div>
+              <div className="text-white font-semibold">Compliance Rate</div>
             </div>
             <div>
               <div className="text-3xl font-black text-emerald-300 mb-2">0</div>
-              <div className="text-blue-200 font-semibold">Violations</div>
+              <div className="text-white font-semibold">Violations</div>
             </div>
             <div>
               <div className="text-3xl font-black text-emerald-300 mb-2">24/7</div>
-              <div className="text-blue-200 font-semibold">Support Team</div>
+              <div className="text-white font-semibold">Support Team</div>
             </div>
           </div>
         </div>

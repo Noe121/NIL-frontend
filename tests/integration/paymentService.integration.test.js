@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { paymentService } from '../src/services/paymentService.js';
+import { paymentService } from '@/services/paymentService.js';
 
 /**
  * Frontend Integration Tests for Payment Service

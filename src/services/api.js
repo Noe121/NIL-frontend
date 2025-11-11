@@ -185,7 +185,7 @@ class ApiService {
 
   async getInfluencer(id) {
     const response = await this.apiClient.get(`/influencers/${id}`);
-    return response.data.influencer;
+    return response.data;
   }
 
   async createInfluencer(data) {

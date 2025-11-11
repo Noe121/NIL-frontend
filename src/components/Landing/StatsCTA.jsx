@@ -23,7 +23,7 @@ const StatsCTA = () => (
             <div key={i} className="group text-center p-6 rounded-xl glass-light border border-white/20 hover:scale-105 transition-all duration-300">
               <div className="text-3xl mb-4">{stat.icon}</div>
               <div className="text-2xl font-black text-white group-hover:text-blue-300">{stat.num}</div>
-              <div className="text-sm font-semibold text-blue-200 mt-2">{stat.label}</div>
+              <div className="text-sm font-semibold text-slate-300 mt-2">{stat.label}</div>
             </div>
           ))}
         </div>

@@ -8,7 +8,7 @@ const DealsManagement = () => (
         <h2 className="text-4xl lg:text-5xl font-black text-white mb-6">
           Premium Deal Management Platform
         </h2>
-        <p className="text-xl text-blue-200 max-w-3xl mx-auto">
+        <p className="text-xl text-white max-w-3xl mx-auto">
           Manage multiple sponsorship deals with built-in compliance, tracking, and payment management
         </p>
       </div>
@@ -54,7 +54,7 @@ const DealsManagement = () => (
               </div>
               <div>
                 <h3 className="font-bold text-white text-lg mb-2">{feature.title}</h3>
-                <p className="text-blue-200 text-sm">{feature.desc}</p>
+                <p className="text-white text-sm">{feature.desc}</p>
               </div>
             </div>
           ))}
@@ -75,19 +75,19 @@ const DealsManagement = () => (
 
             <div className="space-y-4 mb-8">
               <div className="flex justify-between items-center">
-                <span className="text-blue-200">Deal Value</span>
+                <span className="text-white">Deal Value</span>
                 <span className="text-white font-black">$85,000</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-blue-200">Duration</span>
+                <span className="text-white">Duration</span>
                 <span className="text-white font-semibold">12 months</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-blue-200">Compliance Status</span>
+                <span className="text-white">Compliance Status</span>
                 <span className="text-emerald-300 font-bold">✓ Compliant</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-blue-200">Next Payment</span>
+                <span className="text-white">Next Payment</span>
                 <span className="text-white font-semibold">March 15, 2025</span>
               </div>
             </div>
@@ -95,11 +95,11 @@ const DealsManagement = () => (
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="bg-blue-500/10 rounded-lg p-4 text-center border border-blue-300/30">
                 <div className="text-2xl font-black text-blue-300 mb-1">4/12</div>
-                <div className="text-xs text-blue-200 font-semibold">DELIVERABLES</div>
+                <div className="text-xs text-white font-semibold">DELIVERABLES</div>
               </div>
               <div className="bg-yellow-500/10 rounded-lg p-4 text-center border border-yellow-300/30">
                 <div className="text-2xl font-black text-yellow-300 mb-1">60%</div>
-                <div className="text-xs text-yellow-200 font-semibold">PROGRESS</div>
+                <div className="text-xs text-white font-semibold">PROGRESS</div>
               </div>
             </div>
 
@@ -112,7 +112,7 @@ const DealsManagement = () => (
             <div className="flex items-start justify-between mb-6">
               <div>
                 <h3 className="text-2xl font-black text-white mb-2">Under Armour</h3>
-                <p className="text-blue-300 text-sm font-semibold">Social Media Campaign</p>
+                <p className="text-white text-sm font-semibold">Social Media Campaign</p>
               </div>
               <div className="bg-blue-500/20 border border-blue-400/50 rounded-lg px-4 py-2">
                 <span className="text-blue-300 font-bold text-sm">⏳ Pending</span>
@@ -121,15 +121,15 @@ const DealsManagement = () => (
 
             <div className="space-y-4 mb-8">
               <div className="flex justify-between items-center">
-                <span className="text-blue-200">Deal Value</span>
+                <span className="text-white">Deal Value</span>
                 <span className="text-white font-black">$45,000</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-blue-200">Duration</span>
+                <span className="text-white">Duration</span>
                 <span className="text-white font-semibold">6 months</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-blue-200">Status</span>
+                <span className="text-white">Status</span>
                 <span className="text-blue-300 font-bold">Under Review</span>
               </div>
             </div>

@@ -1,7 +1,11 @@
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Play, Award } from 'lucide-react';
+import { ArrowRight, Play, Award, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function SportsHero() {
+  const [businessSectionExpanded, setBusinessSectionExpanded] = useState(false);
+  const navigate = useNavigate();
   return (
     <section className="relative min-h-screen flex items-center justify-center gradient-hero text-white overflow-hidden px-4">
       {/* Animated particles */}
@@ -42,6 +46,7 @@ export default function SportsHero() {
           <Button
             size="lg"
             className="group bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black text-lg px-12 py-4 shadow-glow hover:shadow-[0_20px_40px_-10px_rgba(59,130,246,0.4)] transform hover:-translate-y-1 transition-all duration-300 h-16 w-full sm:w-auto"
+            onClick={() => navigate('/premium-deals')}
           >
             <span className="flex items-center justify-center">
               🎯 Unlock Premium Deals
@@ -52,6 +57,7 @@ export default function SportsHero() {
             variant="outline"
             size="lg"
             className="border-2 border-white/30 glass text-white font-bold text-lg px-12 py-4 h-16 w-full sm:w-auto backdrop-blur-sm hover:bg-white/10 transition-all duration-300"
+            onClick={() => navigate('/learn-more')}
           >
             <Play className="w-5 h-5 mr-2" />
             Learn More (2 min)
@@ -62,15 +68,15 @@ export default function SportsHero() {
         <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
           <div className="glass rounded-lg p-4">
             <div className="text-2xl font-black text-blue-300">24/7</div>
-            <div className="text-sm text-blue-200">Deal Support</div>
+            <div className="text-sm text-slate-300">Deal Support</div>
           </div>
           <div className="glass rounded-lg p-4">
             <div className="text-2xl font-black text-emerald-300">100%</div>
             <div className="text-sm text-emerald-200">Compliance Safe</div>
           </div>
           <div className="glass rounded-lg p-4">
-            <div className="text-2xl font-black text-yellow-300">0%*</div>
-            <div className="text-sm text-yellow-200">Commission (Year 1)</div>
+            <div className="text-2xl font-black text-yellow-300">0% → 9%</div>
+            <div className="text-sm text-yellow-200">Platform Fee</div>
           </div>
           <div className="glass rounded-lg p-4">
             <div className="text-2xl font-black text-violet-300">98%</div>
@@ -78,11 +84,51 @@ export default function SportsHero() {
           </div>
         </div>
 
-        {/* Pricing model note */}
-        <p className="text-center text-sm text-blue-300/80 mt-8 max-w-2xl mx-auto font-semibold">
-          *0% commission year 1 to help you land your first deals. After year 1: 15% commission on all deal value. 
-          Brand partnerships pay us directly, ensuring their investment is protected.
-        </p>
+        {/* NILBx athlete Pricing – Final Fine Print */}
+        <div className="text-center text-sm text-blue-300/80 mt-8 max-w-3xl mx-auto font-semibold">
+          <div className="mb-4">
+            <strong className="text-white text-base">NILBx athlete Pricing – Final Fine Print (Revenue-Focused, Athlete-Approved)</strong>
+          </div>
+          <div className="space-y-2 text-left">
+            <div>
+              <strong className="text-white">Year 1: 0% platform fee</strong><br />
+              <span className="text-blue-200">You keep 100% of every deal — we make $0 so you can land your first partnerships fast.</span>
+            </div>
+            <div>
+              <strong className="text-white">Starting Year 2: 9% platform fee</strong><br />
+              <span className="text-blue-200">That's 40–70% less than competing NIL platforms (15–30%).</span>
+            </div>
+            <div>
+              <button
+                onClick={() => setBusinessSectionExpanded(!businessSectionExpanded)}
+                className="flex items-center justify-center w-full text-white hover:text-blue-200 transition-colors duration-200 group"
+              >
+                <strong className="text-white text-base group-hover:text-blue-200 transition-colors duration-200">
+                  How we stay in business & keep growing:
+                </strong>
+                {businessSectionExpanded ? (
+                  <ChevronUp className="w-4 h-4 ml-2 text-blue-200" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 ml-2 text-blue-200" />
+                )}
+              </button>
+              {businessSectionExpanded && (
+                <ul className="text-blue-200 ml-4 mt-2 space-y-1 animate-in slide-in-from-top-2 duration-300">
+                  <li>• Brands pay us a small service add-on (built into their quote) for premium tools:</li>
+                  <li className="ml-4">– Instant NCAA disclosure filing</li>
+                  <li className="ml-4">– Real-time compliance reports</li>
+                  <li className="ml-4">– Tax-ready 1099s</li>
+                  <li className="ml-4">– Dedicated deal manager</li>
+                  <li>• These optional add-ons fund our infrastructure, marketing, and 24/7 support — at no cost to you.</li>
+                </ul>
+              )}
+            </div>
+            <div>
+              <strong className="text-white">Your payout is always guaranteed</strong><br />
+              <span className="text-blue-200">Brands pay into secure escrow. You get paid within 24 hours of deal approval — never delayed, never deducted.</span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

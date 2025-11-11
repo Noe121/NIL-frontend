@@ -23,7 +23,7 @@ const SportsStatsCTA = () => (
             <div key={i} className="group text-center p-6 rounded-xl glass-light border border-white/20 hover:scale-105 transition-all duration-300">
               <div className="text-3xl mb-4">{stat.icon}</div>
               <div className="text-2xl font-black text-white group-hover:text-blue-300">{stat.num}</div>
-              <div className="text-sm font-semibold text-blue-200 mt-2">{stat.label}</div>
+              <div className="text-sm font-semibold text-white mt-2">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -56,7 +56,7 @@ const SportsStatsCTA = () => (
       <div className="mt-16 grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
         <div className="glass rounded-xl p-6 border border-blue-300/20">
           <h3 className="font-bold text-white text-lg mb-2">Why NILbx for Student-Athletes?</h3>
-          <ul className="text-sm text-blue-200 space-y-2">
+          <ul className="text-sm text-white space-y-2">
             <li>✓ Compliance-first platform</li>
             <li>✓ Premium brand access</li>
             <li>✓ Deal management tools</li>
@@ -65,7 +65,7 @@ const SportsStatsCTA = () => (
         </div>
         <div className="glass rounded-xl p-6 border border-blue-300/20">
           <h3 className="font-bold text-white text-lg mb-2">Average Student-Athlete Earnings</h3>
-          <ul className="text-sm text-blue-200 space-y-2">
+          <ul className="text-sm text-white space-y-2">
             <li>🏀 Basketball: $200K-$500K</li>
             <li>🏈 Football: $250K-$600K</li>
             <li>⚽ Soccer: $150K-$400K</li>

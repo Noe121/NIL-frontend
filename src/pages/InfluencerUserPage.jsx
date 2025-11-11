@@ -219,13 +219,13 @@ const InfluencerUserPage = () => {
                       Type
                     </label>
                     <div className="px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 capitalize">
-                      {influencer.influencer_type || 'influencer'}
+                      {influencer.type || 'influencer'}
                     </div>
                   </div>
                 </div>
 
                 {/* Student Athlete Fields */}
-                {influencer.influencer_type === 'student_athlete' && (
+                {influencer.type === 'student_athlete' && (
                   <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <div>
                       <label className="block text-sm font-medium text-blue-900 mb-2">

@@ -1,14 +1,17 @@
 import { Star } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useDemoData } from '../../contexts/DataManagementContext';
+import DemoFeedbackWidget from '../DemoFeedbackWidget';
 
-const testimonials = [
+const demoTestimonials = [
   {
     quote: "I made $45K my first month just posting content I already create. NILBx made it so simple.",
     author: "David Martinez",
     role: "Gaming Content Creator • 850K followers",
     avatar: "👾",
     rating: 5,
-    earnings: "$285K annual"
+    earnings: "$285K annual",
+    isDemo: true
   },
   {
     quote: "The best part? No lengthy negotiations or hidden fees. I get paid what they promised, every time.",
@@ -16,7 +19,8 @@ const testimonials = [
     role: "Travel Influencer • 1.2M followers",
     avatar: "✈️",
     rating: 5,
-    earnings: "$340K annual"
+    earnings: "$340K annual",
+    isDemo: true
   },
   {
     quote: "Compared to other platforms, NILBx keeps 95% with me. That's a game changer for content creators.",
@@ -24,7 +28,8 @@ const testimonials = [
     role: "Beauty & Lifestyle • 950K followers",
     avatar: "💄",
     rating: 5,
-    earnings: "$210K annual"
+    earnings: "$210K annual",
+    isDemo: true
   },
   {
     quote: "The brand partnerships are vetted and actually relevant to my content. No sketchy deals.",
@@ -32,8 +37,13 @@ const testimonials = [
     role: "Fitness Creator • 1.5M followers",
     avatar: "💪",
     rating: 5,
-    earnings: "$420K annual"
+    earnings: "$420K annual",
+    isDemo: true
   }
+];
+
+const realTestimonials = [
+  // Real testimonials would be loaded from API
 ];
 
 const container = {
@@ -52,6 +62,8 @@ const item = {
 };
 
 export default function CreatorTestimonials() {
+  const { data, isDemo, isTransitioning, progress } = useDemoData('userProfiles', demoTestimonials, realTestimonials);
+
   return (
     <section className="py-24 bg-gradient-to-br from-slate-900/50 to-blue-900/30">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -59,9 +71,18 @@ export default function CreatorTestimonials() {
           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
             Creators Love Us
           </h2>
-          <p className="text-xl text-blue-200 max-w-3xl mx-auto">
+          <p className="text-xl text-slate-300 max-w-3xl mx-auto">
             Real creators, real earnings, real stories.
           </p>
+          {isTransitioning && (
+            <div className="mt-4">
+              <div className="inline-block px-4 py-2 bg-purple-500/20 rounded-full">
+                <p className="text-purple-300 text-sm">
+                  🔄 Loading real creator profiles... {progress}%
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <motion.div
@@ -71,7 +92,7 @@ export default function CreatorTestimonials() {
           whileInView="show"
           viewport={{ once: true }}
         >
-          {testimonials.map((testimonial, index) => (
+          {data.map((testimonial, index) => (
             <motion.div
               key={index}
               variants={item}
@@ -145,6 +166,29 @@ export default function CreatorTestimonials() {
             </div>
             <p className="text-white/70">Payout to Creators</p>
           </div>
+        </div>
+
+        {/* Demo Data Disclaimer */}
+        <div className="mt-16 text-center space-y-4">
+          {isDemo ? (
+            <div className="inline-block px-6 py-3 bg-purple-500/10 rounded-full border border-purple-400/30">
+              <p className="text-purple-300 text-sm font-medium">
+                🎭 Sample creator profiles • Real earnings data coming soon
+              </p>
+            </div>
+          ) : (
+            <div className="inline-block px-6 py-3 bg-green-500/10 rounded-full border border-green-400/30">
+              <p className="text-green-300 text-sm font-medium">
+                ✅ Real creator profiles and earnings
+              </p>
+            </div>
+          )}
+
+          {/* Feedback Widget */}
+          <DemoFeedbackWidget
+            dataType="userProfiles"
+            className="mt-4"
+          />
         </div>
       </div>
     </section>

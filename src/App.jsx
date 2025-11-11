@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import { ApiProvider } from './contexts/ApiContext.jsx';
 import { Web3Provider } from './contexts/Web3Context.jsx';
+import { DataManagementProvider } from './contexts/DataManagementContext.jsx';
 import { useAuth } from './hooks/useAuth.js';
 import { config, utils, APP_MODE, IS_CENTRALIZED, IS_DEV } from './utils/config.js';
 
@@ -25,17 +26,25 @@ const Auth = lazy(() => import('./pages/Auth.jsx'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword.jsx'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword.jsx'));
 const Register = lazy(() => import('./pages/Register.jsx'));
+const RoleSelection = lazy(() => import('./components/RoleSelection.jsx'));
+const AthleteRegistration = lazy(() => import('./components/AthleteRegistration.jsx'));
+const SponsorRegistration = lazy(() => import('./components/SponsorRegistration.jsx'));
+const FanRegistration = lazy(() => import('./components/FanRegistration.jsx'));
+const TermsOfService = lazy(() => import('./pages/TermsOfService.jsx'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy.jsx'));
 const AthleteUserPage = lazy(() => import('./pages/AthleteUserPage.jsx'));
 const AthleteProfilePage = lazy(() => import('./pages/AthleteProfilePage.jsx'));
 const InfluencerUserPage = lazy(() => import('./pages/InfluencerUserPage.jsx'));
 const InfluencerProfilePage = lazy(() => import('./pages/InfluencerProfilePage.jsx'));
 const SponsorUserPage = lazy(() => import('./pages/SponsorUserPage.jsx'));
+const AgencyUserPage = lazy(() => import('./pages/AgencyUserPage.jsx'));
 const FanUserPage = lazy(() => import('./pages/FanUserPage.jsx'));
 const MarketplacePage = lazy(() => import('./pages/MarketplacePage.jsx'));
 const CommunityPage = lazy(() => import('./pages/CommunityPage.jsx'));
 const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage.jsx'));
 const ProfileEditPage = lazy(() => import('./pages/ProfileEditPage.jsx'));
 const HelpCenterPage = lazy(() => import('./pages/HelpCenterPage.jsx'));
+const PrivacySettingsPage = lazy(() => import('./pages/PrivacySettingsPage.jsx'));
 const ErrorPage = lazy(() => import('./pages/ErrorPage.jsx'));
 
 // Payment System Pages
@@ -43,6 +52,8 @@ const CreateDeal = lazy(() => import('./pages/CreateDeal.jsx'));
 const ClaimDeal = lazy(() => import('./pages/ClaimDeal.jsx'));
 const FutureDeals = lazy(() => import('./pages/FutureDeals.jsx'));
 const DealsPage = lazy(() => import('./pages/DealsPage.jsx'));
+const PremiumDealsPage = lazy(() => import('./pages/PremiumDealsPage.jsx'));
+const LearnMorePage = lazy(() => import('./pages/LearnMorePage.jsx'));
 
 // Components
 import NavBar from './components/NavBar.jsx';
@@ -70,7 +81,9 @@ export function SafeProvider({ children }) {
       <AuthProvider>
         <ApiProvider>
           <Web3Provider>
-            {children}
+            <DataManagementProvider>
+              {children}
+            </DataManagementProvider>
           </Web3Provider>
         </ApiProvider>
       </AuthProvider>
@@ -100,7 +113,12 @@ export default function App() {
             <Route path="/fan" element={<FanLandingPage />} />
             <Route path="/agency" element={<AgencyLandingPage />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<RoleSelection />} />
+            <Route path="/register/athlete" element={<AthleteRegistration />} />
+            <Route path="/register/sponsor" element={<SponsorRegistration />} />
+            <Route path="/register/fan" element={<FanRegistration />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
 
@@ -124,6 +142,11 @@ export default function App() {
             <Route path="/dashboard/sponsor" element={
               <ProtectedRoute role="sponsor">
                 <SponsorUserPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/agency" element={
+              <ProtectedRoute role="agency">
+                <AgencyUserPage />
               </ProtectedRoute>
             } />
             <Route path="/dashboard/fan" element={
@@ -153,6 +176,8 @@ export default function App() {
                 <DealsPage />
               </ProtectedRoute>
             } />
+            <Route path="/premium-deals" element={<PremiumDealsPage />} />
+            <Route path="/learn-more" element={<LearnMorePage />} />
             <Route path="/community" element={
               <ProtectedRoute>
                 <CommunityPage />
@@ -171,6 +196,11 @@ export default function App() {
             <Route path="/help" element={
               <ProtectedRoute>
                 <HelpCenterPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/privacy-settings" element={
+              <ProtectedRoute>
+                <PrivacySettingsPage />
               </ProtectedRoute>
             } />
 

@@ -78,7 +78,8 @@ async function testFrontendBasic() {
     testUsers.push(testUsername); // Track for cleanup
 
     const registerResp = await axios.post(`${config.authUrl}/register`, {
-      username: testUsername,
+      email: testUsername + '@example.com',
+      name: 'Test User',
       password: 'testpass123',
       role: 'fan'
     }, {
@@ -87,24 +88,25 @@ async function testFrontendBasic() {
       timeout: 5000
     });
     
-    let username;
+    let email;
     if (registerResp.status === 200 || registerResp.status === 201) {
-      username = registerResp.data.username;
+      email = registerResp.data.email;
       console.log('[PASS] User registration test');
     } else if (registerResp.status === 400 && registerResp.data.detail.includes('already exists')) {
-      username = `frontend_test_${Date.now()}`;
+      email = testUsername + '@example.com';
       console.log('[PASS] User registration test (user already exists)');
     } else {
       throw new Error(`Registration failed: ${registerResp.status} ${registerResp.data}`);
     }
     
     // Test login
+    let loginResp;
     const loginParams = new URLSearchParams();
-    loginParams.append('username', username);
+    loginParams.append('username', testUsername + '@example.com');
     loginParams.append('password', 'testpass123');
     
     try {
-      const loginResp = await axios.post(`${config.authUrl}/login`, loginParams, {
+      loginResp = await axios.post(`${config.authUrl}/login`, loginParams, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         timeout: 5000
       });

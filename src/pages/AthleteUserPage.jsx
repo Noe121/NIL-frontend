@@ -5,6 +5,7 @@ import { useApi } from '../hooks/useApi.js';
 import SponsorshipTasks from '../components/SponsorshipTasks.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import AnalyticsChart from '../components/AnalyticsChart.jsx';
+import WorkflowTemplates from '../components/WorkflowTemplates.jsx';
 import { toast } from 'react-toastify';
 
 const AthleteUserPage = () => {
@@ -15,9 +16,10 @@ const AthleteUserPage = () => {
   const [content, setContent] = useState([]);
   const [metrics, setMetrics] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [templatesExpanded, setTemplatesExpanded] = useState(false);
 
   useEffect(() => {
-    if (!user || user.role !== 'athlete') {
+    if (!user || (user.role !== 'athlete' && user.role !== 'student_athlete')) {
       navigate('/');
       return;
     }
@@ -54,8 +56,40 @@ const AthleteUserPage = () => {
 
   return (
     <div data-testid="athlete-dashboard" className="container mx-auto px-4 py-8">
+      {/* Welcome Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to Your Athlete Dashboard</h1>
+        <p className="text-lg text-gray-600">
+          Manage your sponsorships and discover new opportunities
+        </p>
+      </div>
+
+      {/* Athlete Workflow Templates - Collapsible */}
+      <div className="mb-8">
+        <button
+          onClick={() => setTemplatesExpanded(!templatesExpanded)}
+          className="w-full flex items-center justify-between p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center space-x-3">
+            <span className="text-2xl">🎯</span>
+            <div className="text-left">
+              <h2 className="text-xl font-bold text-gray-900">Initiate Deal Opportunities</h2>
+              <p className="text-sm text-gray-600">Choose from our collection of deal templates to pitch to brands</p>
+            </div>
+          </div>
+          <span className={`transform transition-transform ${templatesExpanded ? 'rotate-180' : ''}`}>
+            ▼
+          </span>
+        </button>
+
+        {templatesExpanded && (
+          <div className="mt-4">
+            <WorkflowTemplates workflowType="athlete" />
+          </div>
+        )}
+      </div>
+      {/* Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Analytics Section */}
         <div className="col-span-2">
           <h2 className="text-2xl font-bold mb-4">Analytics & Performance</h2>
           {analytics && (

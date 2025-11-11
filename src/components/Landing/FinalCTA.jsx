@@ -43,7 +43,7 @@ export default function FinalCTA() {
             </h2>
 
             {/* Subheading */}
-            <p className="text-xl lg:text-2xl text-blue-200 mb-8 leading-relaxed">
+            <p className="text-xl lg:text-2xl text-slate-300 mb-8 leading-relaxed">
               Join creators earning <span className="text-transparent bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text font-black">$100K+</span> annually on NILBx
             </p>
 

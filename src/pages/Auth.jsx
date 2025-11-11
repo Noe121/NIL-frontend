@@ -55,18 +55,26 @@ export default function Auth() {
           name: result.user.name || result.user.email?.split('@')[0]
         };
 
+        console.log('Login successful, userData:', userData);
+        console.log('Role from result:', result.role);
+        console.log('Role from result.user:', result.user.role);
+
         login(result.token, userData);
 
         // Redirect based on user role
         const roleRoutes = {
           athlete: '/dashboard/athlete',
+          student_athlete: '/dashboard/athlete', // Map student_athlete to athlete dashboard
           influencer: '/dashboard/influencer',
           sponsor: '/dashboard/sponsor',
           fan: '/dashboard/fan',
           admin: '/dashboard/athlete' // Default to athlete dashboard for admin
         };
 
-        navigate(roleRoutes[userData.role] || '/dashboard/athlete');
+        const redirectPath = roleRoutes[userData.role] || '/dashboard/athlete';
+        console.log('Redirecting to:', redirectPath, 'for role:', userData.role);
+        
+        navigate(redirectPath);
       } else {
         setErrors({ submit: result.error || 'Login failed' });
       }

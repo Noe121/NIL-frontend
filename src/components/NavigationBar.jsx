@@ -78,12 +78,12 @@ const NavigationBar = () => {
         { path: '/schedule', label: 'Schedule', icon: '📅' },
         { path: '/analytics', label: 'Analytics', icon: '📈' }
       ],
-      influencer: [
-        { path: '/dashboard/influencer', label: 'Influencer Dashboard', icon: '⭐' },
-        { path: '/influencer-opportunities', label: 'Opportunities', icon: '🎯' },
-        { path: '/influencer-analytics', label: 'Analytics', icon: '📈' }
-      ],
       student_athlete: [
+        { path: '/sponsorships', label: 'My Sponsorships', icon: '🤝' },
+        { path: '/schedule', label: 'Schedule', icon: '📅' },
+        { path: '/analytics', label: 'Analytics', icon: '📈' }
+      ],
+      influencer: [
         { path: '/dashboard/influencer', label: 'Influencer Dashboard', icon: '⭐' },
         { path: '/influencer-opportunities', label: 'Opportunities', icon: '🎯' },
         { path: '/influencer-analytics', label: 'Analytics', icon: '📈' }

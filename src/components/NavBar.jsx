@@ -13,11 +13,11 @@ export default function NavBar({ jwt, onLogout, role }) {
   return (
     <nav style={{ display: 'flex', gap: 16, padding: 16, borderBottom: '1px solid #eee', marginBottom: 24 }}>
       <Link to="/">Home</Link>
-      {role === 'athlete' && <Link to="/dashboard">Dashboard</Link>}
-      {role === 'athlete' && <Link to="/profile">Profile</Link>}
-      {role === 'athlete' && <Link to="/sponsorships">Sponsorships</Link>}
-      {role === 'athlete' && <Link to="/schedule">Schedule</Link>}
-      {role === 'athlete' && <Link to="/analytics">Analytics</Link>}
+      {role === 'athlete' || role === 'student_athlete' ? <Link to="/dashboard">Dashboard</Link> : null}
+      {role === 'athlete' || role === 'student_athlete' ? <Link to="/profile">Profile</Link> : null}
+      {role === 'athlete' || role === 'student_athlete' ? <Link to="/sponsorships">Sponsorships</Link> : null}
+      {role === 'athlete' || role === 'student_athlete' ? <Link to="/schedule">Schedule</Link> : null}
+      {role === 'athlete' || role === 'student_athlete' ? <Link to="/analytics">Analytics</Link> : null}
 
       {role === 'sponsor' && <Link to="/dashboard">Dashboard</Link>}
       {role === 'sponsor' && <Link to="/athlete-search">Athlete Search</Link>}

@@ -63,12 +63,14 @@ export const validators = {
     return { isValid: true };
   },
 
-  role: (value) => {
-    const validRoles = ['athlete', 'sponsor', 'fan'];
-    if (!value) return { isValid: false, error: 'Please select a role' };
-    if (!validRoles.includes(value)) return { isValid: false, error: 'Please select a valid role' };
+  age: (value) => {
+    if (!value) return { isValid: false, error: 'Age is required' };
+    const age = parseInt(value);
+    if (isNaN(age)) return { isValid: false, error: 'Please enter a valid age' };
+    if (age < 6) return { isValid: false, error: 'Age must be at least 6' };
+    if (age > 100) return { isValid: false, error: 'Please enter a valid age' };
     return { isValid: true };
-  }
+  },
 };
 
 export const validateForm = (formData, validationRules) => {

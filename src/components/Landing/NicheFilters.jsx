@@ -30,7 +30,7 @@ export default function NicheFilters({ onFilterChange = () => {} }) {
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-3">
             Find Creators in Your Niche
           </h2>
-          <p className="text-lg text-blue-200">
+          <p className="text-lg text-slate-300">
             Filter by content category • Connect with your ideal creators
           </p>
         </div>

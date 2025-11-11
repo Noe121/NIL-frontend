@@ -66,7 +66,7 @@ export default function StudentAthletesCarousel({ onAthleteClick }) {
           <h2 className="inline-block px-8 py-4 glass rounded-full text-3xl lg:text-4xl font-black text-white shadow-glow">
             🌟 Elite Student-Athletes
           </h2>
-          <p className="text-blue-200 text-lg mt-6 max-w-2xl mx-auto">
+          <p className="text-white text-lg mt-6 max-w-2xl mx-auto">
             Top performing student-athletes managing multiple premium sponsorship deals with full compliance
           </p>
         </div>
@@ -99,7 +99,7 @@ export default function StudentAthletesCarousel({ onAthleteClick }) {
                     <div className="text-2xl font-mono font-black text-blue-300 mb-1">
                       {athlete.followers}
                     </div>
-                    <div className="text-xs font-semibold text-blue-200 uppercase tracking-wide">
+                    <div className="text-xs font-semibold text-white uppercase tracking-wide">
                       Followers
                     </div>
                   </div>
