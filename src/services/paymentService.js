@@ -2,7 +2,7 @@ import { featureFlags } from './featureFlagService.js';
 
 class PaymentService {
   constructor() {
-    this.baseUrl = import.meta.env.VITE_PAYMENT_SERVICE_URL || 'http://localhost:8005';
+    this.baseUrl = import.meta.env.VITE_PAYMENT_SERVICE_URL || 'http://localhost:8006';
   }
 
   /**
@@ -365,16 +365,43 @@ class PaymentService {
    */
 
   /**
-   * @deprecated Use calculatePayout() instead
+   * Create Stripe payment intent for sponsor payment
+   * @param {Object} paymentData - Payment details
+   * @returns {Object} Payment intent data with client_secret
    */
-  async createPayment(amount, currency = 'usd', metadata = {}) {
-    if (!featureFlags.isEnabled('enable_traditional_payments')) {
-      throw new Error('Payments temporarily unavailable');
+  async createStripePaymentIntent(paymentData) {
+    const {
+      amount,
+      sponsor_id,
+      deal_id,
+      description
+    } = paymentData;
+
+    if (!amount || amount <= 0) {
+      throw new Error('Amount must be greater than 0');
     }
 
-    // This endpoint doesn't exist in new payment service
-    // Return a placeholder error
-    throw new Error('createPayment() is deprecated. Use calculatePayout() instead.');
+    if (!sponsor_id) {
+      throw new Error('Sponsor ID is required');
+    }
+
+    const response = await fetch(`${this.baseUrl}/stripe/payment-intent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: parseFloat(amount),
+        sponsor_id: parseInt(sponsor_id),
+        deal_id: deal_id ? parseInt(deal_id) : null,
+        description: description || `NIL Deal Payment - $${amount}`
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Payment intent creation failed: ${error}`);
+    }
+
+    return response.json();
   }
 
   /**

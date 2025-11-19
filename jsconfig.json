@@ -8,5 +8,6 @@
       "@utils/*": ["./src/utils/*"],
       "@views/*": ["./src/views/*"]
     }
-  }
+  },
+  "exclude": ["node_modules"]
 }

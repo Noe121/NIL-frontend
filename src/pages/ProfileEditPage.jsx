@@ -7,7 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner.jsx';
 
 export default function ProfileEditPage() {
   const { apiService } = useApi();
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -36,7 +36,7 @@ export default function ProfileEditPage() {
   const loadProfile = async () => {
     try {
       setLoading(true);
-      const response = await apiService.get('/profile');
+      const response = await apiService.getUserProfile();
       setFormData(prev => ({
         ...prev,
         ...response
@@ -124,14 +124,21 @@ export default function ProfileEditPage() {
       setError('');
       setSuccess('');
 
-      await apiService.put('/profile', formData);
+      console.log('Submitting profile update:', { formData, userId: user.id, role: user.role });
 
-      // Update the user context if needed
-      updateUser({ ...user, name: formData.name, email: formData.email });
+      // Ensure we include the user ID from the auth context
+      const dataToUpdate = {
+        ...formData,
+        id: user.id
+      };
+
+      await apiService.updateUserProfile(dataToUpdate, user.role);
 
       setSuccess('Profile updated successfully!');
     } catch (err) {
-      setError('Failed to save profile changes');
+      console.error('Profile update error:', err);
+      console.error('Error response:', err.response?.data);
+      setError(err.response?.data?.detail || err.message || 'Failed to save profile changes');
     } finally {
       setSaving(false);
     }

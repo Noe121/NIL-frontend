@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import apiService from '../services/api';
+import config, { IS_DEV } from '../utils/config';
 
 export const ApiContext = createContext();
 
@@ -7,10 +8,16 @@ export const ApiProvider = ({ children }) => {
   const [healthStatus, setHealthStatus] = useState({});
   const [loading, setLoading] = useState(false);
 
+  const shouldRunHealthCheck = IS_DEV || config.ui.debugMode;
+
   useEffect(() => {
-    // Check service health on mount
-    checkHealth();
-  }, []);
+    // Only run health checks locally or when explicitly enabled
+    if (shouldRunHealthCheck) {
+      checkHealth();
+    } else {
+      setHealthStatus({ disabled: true });
+    }
+  }, [shouldRunHealthCheck]);
 
   const checkHealth = async () => {
     try {

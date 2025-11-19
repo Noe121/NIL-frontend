@@ -11,21 +11,21 @@ class DealService {
       throw new Error('Deal creation temporarily unavailable');
     }
 
-    // Delegate to Payment Service
-    const payment = await paymentService.createPayment(
-      formData.amount,
-      'usd',
-      {
-        deal: {
-          sponsor_id: formData.sponsor_id,
-          athlete_id: formData.athlete_id,
-          hotspot_name: formData.hotspot_name,
-          requirement: formData.requirement
-        }
-      }
-    );
+    // Create Stripe payment intent for sponsor payment
+    const paymentIntent = await paymentService.createStripePaymentIntent({
+      amount: formData.amount,
+      sponsor_id: formData.sponsor_id,
+      deal_id: null, // Will be assigned after deal creation
+      description: `NIL Deal: ${formData.hotspot_name} - ${formData.requirement.substring(0, 50)}...`
+    });
 
-    return payment; // Contains checkout_url
+    // For now, return the payment intent data
+    // In a full implementation, this would create the deal first, then the payment intent
+    return {
+      payment_id: paymentIntent.payment_id,
+      client_secret: paymentIntent.client_secret,
+      checkout_url: null // We'll handle checkout in the frontend
+    };
   }
 
   async claimDeal(dealId) {

@@ -28,7 +28,7 @@ const AthleteUserPage = () => {
       setIsLoading(true);
       try {
         // Fetch analytics
-        const analyticsData = await apiService.getAthleteAnalytics(user.id);
+        const analyticsData = await apiService.getAthleteAnalytics();
         setAnalytics(analyticsData);
 
         // Fetch content

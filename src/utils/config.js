@@ -40,7 +40,7 @@ export const IS_PER_SERVICE = APP_MODE === 'per-service';
 
 // Development/Production detection with multiple checks
 export const IS_DEV = (() => {
-  const isDev = getEnvVar('NODE_ENV') === 'development' || 
+  const isDev = getEnvVar('NODE_ENV') === 'development' ||
                 getEnvVar('DEV') === true ||
                 window.location.hostname === 'localhost';
   console.log('🔍 Development mode:', isDev);
@@ -58,30 +58,34 @@ const getApiConfig = () => {
     isPerService: IS_PER_SERVICE,
     isDev: IS_DEV,
     isProd: IS_PROD,
-    
+
     // API Endpoints with environment-aware fallbacks
-    apiUrl: IS_PROD 
+    apiUrl: IS_PROD
       ? (getEnvVar('VITE_API_URL') || 'https://yt896q3bx4.execute-api.us-east-1.amazonaws.com/prod')
       : (getEnvVar('VITE_API_URL') || (IS_CENTRALIZED ? 'http://localhost:8000' : IS_PER_SERVICE ? 'http://localhost:8001' : 'http://localhost:8002')),
-    authServiceUrl: IS_PROD 
+    authServiceUrl: IS_PROD
       ? (getEnvVar('VITE_AUTH_SERVICE_URL') || 'https://yt896q3bx4.execute-api.us-east-1.amazonaws.com/prod/auth')
       : (getEnvVar('VITE_AUTH_SERVICE_URL') || 'http://localhost:9000'),
-    companyApiUrl: IS_PROD 
+    companyApiUrl: IS_PROD
       ? (getEnvVar('VITE_COMPANY_API_URL') || 'https://yt896q3bx4.execute-api.us-east-1.amazonaws.com/prod/api/company')
       : (getEnvVar('VITE_COMPANY_API_URL') || 'http://localhost:8002'),
-    
+    crmApiUrl: IS_PROD
+      ? (getEnvVar('VITE_CRM_API_URL') || 'https://crm.nilbx.com')
+      : (getEnvVar('VITE_CRM_API_URL') || 'http://localhost:8010'),
+    crmApiVersion: getEnvVar('VITE_CRM_API_VERSION') || 'v1',
+
     // Blockchain configuration (centralized mode only)
-    blockchainServiceUrl: IS_CENTRALIZED 
-      ? (getEnvVar('VITE_BLOCKCHAIN_SERVICE_URL') || (IS_PROD 
-        ? 'https://blockchain.nilbx.com' 
-        : 'http://localhost:8545')) 
+    blockchainServiceUrl: IS_CENTRALIZED
+      ? (getEnvVar('VITE_BLOCKCHAIN_SERVICE_URL') || (IS_PROD
+        ? 'https://blockchain.nilbx.com'
+        : 'http://localhost:8545'))
       : null,
-    blockchainRpcUrl: IS_CENTRALIZED 
+    blockchainRpcUrl: IS_CENTRALIZED
       ? (getEnvVar('VITE_BLOCKCHAIN_RPC_URL') || (IS_PROD
         ? 'https://rpc.nilbx.com'
         : 'http://localhost:8545'))
       : null,
-    
+
     // Blockchain contract addresses
     blockchain: IS_CENTRALIZED ? {
       chainId: getEnvVar('VITE_CHAIN_ID') || '31337', // Hardhat default
@@ -91,7 +95,7 @@ const getApiConfig = () => {
         sponsorshipContract: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512'
       }
     } : null,
-    
+
     // Feature flags
     features: {
       blockchain: IS_CENTRALIZED && (getEnvVar('VITE_ENABLE_BLOCKCHAIN') === 'true'),
@@ -106,14 +110,14 @@ const getApiConfig = () => {
       traditionalPayments: getEnvVar('VITE_ENABLE_TRADITIONAL_PAYMENTS') === 'true',
       blockchainPayments: getEnvVar('VITE_ENABLE_BLOCKCHAIN_PAYMENTS') === 'true'
     },
-    
+
     // Authentication settings
     auth: {
       storageKey: getEnvVar('VITE_JWT_STORAGE_KEY') || `nilbx_token_${APP_MODE}`,
       sessionTimeout: parseInt(getEnvVar('VITE_SESSION_TIMEOUT') || '3600000'),
       enableSSO: IS_CENTRALIZED && (getEnvVar('VITE_ENABLE_SSO') === 'true')
     },
-    
+
     // UI/UX settings
     ui: {
       theme: getEnvVar('VITE_THEME') || APP_MODE,
@@ -121,7 +125,7 @@ const getApiConfig = () => {
       apiTimeout: parseInt(getEnvVar('VITE_API_TIMEOUT') || '5000'),
       debugMode: getEnvVar('VITE_DEBUG_MODE') === 'true'
     },
-    
+
     // Development settings
     dev: {
       enableMockData: IS_DEV && (getEnvVar('VITE_ENABLE_MOCK_DATA') === 'true'),
@@ -129,7 +133,7 @@ const getApiConfig = () => {
       previewPort: IS_CENTRALIZED ? 4174 : IS_PER_SERVICE ? 4175 : 4173
     }
   };
-  
+
   return config;
 };
 
@@ -165,7 +169,7 @@ export const checkServiceHealth = async (serviceName, url) => {
       initialDelay: 1000,
       timeout: config.ui.apiTimeout
     });
-    
+
     if (response.ok) {
       const data = await response.json();
       if (config.ui.debugMode) {
@@ -185,21 +189,21 @@ export const checkServiceHealth = async (serviceName, url) => {
 // Initialize configuration and perform health checks
 export const initializeApp = async () => {
   logConfig();
-  
+
   if (config.ui.debugMode) {
     console.log('🏁 Initializing application...');
-    
+
     // Perform health checks
     const healthChecks = [
       checkServiceHealth('API Service', config.apiUrl),
       checkServiceHealth('Auth Service', config.authServiceUrl),
       checkServiceHealth('Company API', config.companyApiUrl)
     ];
-    
+
     if (config.blockchainServiceUrl) {
       healthChecks.push(checkServiceHealth('Blockchain Service', config.blockchainServiceUrl));
     }
-    
+
     const results = await Promise.allSettled(healthChecks);
     console.log('🏥 Health check results:', results);
   }
@@ -214,14 +218,14 @@ export const createApiRequest = async (endpoint, options = {}) => {
                   endpoint.startsWith('/company') ? 'company' :
                   endpoint.startsWith('/blockchain') ? 'blockchain' :
                   'api';
-  
+
   const baseUrl = endpoint.startsWith('/auth') ? config.authServiceUrl :
                   endpoint.startsWith('/company') ? config.companyApiUrl :
                   endpoint.startsWith('/blockchain') ? config.blockchainServiceUrl :
                   config.apiUrl;
-  
+
   const url = `${baseUrl}${endpoint}`;
-  
+
   const defaultOptions = {
     timeout: config.ui.apiTimeout,
     headers: {
@@ -229,7 +233,7 @@ export const createApiRequest = async (endpoint, options = {}) => {
       ...options.headers
     }
   };
-  
+
   // Add authentication token if available
   const token = localStorage.getItem(config.auth.storageKey);
   if (token) {
@@ -249,7 +253,7 @@ export const createApiRequest = async (endpoint, options = {}) => {
         retryableStatuses: [408, 429, 502, 503, 504]
       });
     }
-    
+
     // Use basic retry for non-authenticated endpoints
     return retryFetch(url, requestOptions, {
       maxAttempts: 2,
@@ -269,18 +273,18 @@ export const utils = {
   checkServiceHealth,
   initializeApp,
   createApiRequest,
-  
+
   // Mode detection helpers
   isStandalone: () => IS_STANDALONE,
   isCentralized: () => IS_CENTRALIZED,
   isPerService: () => IS_PER_SERVICE,
   hasFeature: (featureName) => config.features[featureName] || false,
-  
+
   // Storage helpers
   getAuthToken: () => localStorage.getItem(config.auth.storageKey),
   setAuthToken: (token) => localStorage.setItem(config.auth.storageKey, token),
   clearAuthToken: () => localStorage.removeItem(config.auth.storageKey),
-  
+
   // Environment helpers
   isDevelopment: () => IS_DEV,
   isProduction: () => IS_PROD
@@ -316,7 +320,7 @@ export const useConfig = () => {
 // Initialize app on import
 if (typeof window !== 'undefined') {
   initializeApp();
-  
+
   // Debug information in development
   if (IS_DEV) {
     console.group('🚀 Frontend Configuration');

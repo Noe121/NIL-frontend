@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import Testimonials from '@/components/Landing/Testimonials';
-import Footer from '@/components/Landing/Footer';
+// import Testimonials from '@/components/Landing/Testimonials';
+// import Footer from '@/components/Landing/Footer';
 
 const PathButton = ({ icon, title, subtitle, href, color }) => {
   const navigate = useNavigate();
@@ -195,27 +195,27 @@ const LandingPage = () => {
           </motion.h2>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { 
-                name: "Lisa Park", 
-                niche: "Beauty", 
-                followers: "1.2M", 
-                earned: "$180K", 
+              {
+                name: "Lisa Park",
+                niche: "Beauty",
+                followers: "1.2M",
+                earned: "$180K",
                 quote: "NILBx pays 3x more than brand deals",
                 emoji: "💄"
               },
-              { 
-                name: "David Kim", 
-                niche: "Food", 
-                followers: "890K", 
-                earned: "$95K", 
+              {
+                name: "David Kim",
+                niche: "Food",
+                followers: "890K",
+                earned: "$95K",
                 quote: "One post = $5K. No negotiations",
                 emoji: "🍜"
               },
-              { 
-                name: "Sarah Williams", 
-                niche: "Fashion", 
-                followers: "245K", 
-                earned: "$62K", 
+              {
+                name: "Sarah Williams",
+                niche: "Fashion",
+                followers: "245K",
+                earned: "$62K",
                 quote: "I set my rates. Brands pay instantly",
                 emoji: "👗"
               }
@@ -273,10 +273,10 @@ const LandingPage = () => {
       </section>
 
       {/* Old Sections (Optional - can be removed if too long) */}
-      <Testimonials />
+      {/* <Testimonials /> */}
 
       {/* Footer */}
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };

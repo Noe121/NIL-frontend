@@ -169,20 +169,51 @@ Final Athlete Payout: $3,883.70
 
 ### Quick Start
 
-1. **Clone and Install**
+1. **Database Setup (Required for Local Development)**
+
+   **⚠️ Important**: The frontend requires backend services with **CONSOLIDATED v5.0** database schema.
+
+   ```bash
+   # From NIL root directory
+   cd /Users/nicolasvalladares/NIL
+
+   # Start databases (auto-init with v5.0 schema)
+   docker-compose up -d auth-mysql nilbx-mysql
+
+   # Start required backend services
+   docker-compose up -d auth-service api-service company-api
+   ```
+
+   **Test Accounts** (all use password: `test123`):
+   | Email | Role | Use Case |
+   |-------|------|----------|
+   | `test@example.com` | admin | Platform administration |
+   | `athlete.football@example.com` | athlete | College athlete (USC) |
+   | `athlete.nfl@example.com` | athlete | Professional athlete (NFL) |
+   | `sponsor.nike@example.com` | sponsor | Brand sponsor |
+   | `coach.football@example.com` | coach | Team coach |
+   | `parent.football@example.com` | parent | Parent/guardian |
+   | `ncaa.admin@example.com` | NCAA admin | NCAA compliance |
+
+   **Full list**: See `/NILbx-env/modules/db/mysql/README.md`
+
+2. **Clone and Install**
    ```bash
    git clone https://github.com/Noe121/NIL-env.git
    cd frontend
    npm install --legacy-peer-deps
    ```
 
-2. **Start Development Server**
+3. **Start Development Server**
    ```bash
    npm run dev
    ```
 
-3. **Access the Application**
-   - Frontend: http://localhost:5173
+4. **Access the Application**
+   - Frontend: http://localhost:5174
+   - Login with any test account above (password: `test123`)
+
+   **Backend Services:**
    - API Service: http://localhost:8001
    - Auth Service: http://localhost:9000
    - Company API: http://localhost:8002
@@ -282,7 +313,7 @@ frontend/
 ## 🔗 API & Cloud Integration
 
 ### Current Deployment Status ✅
-- **Frontend**: http://localhost:5173 (Development - Per-Service Mode)
+- **Frontend**: http://localhost:5174 (Development - Per-Service Mode)
 - **API Service**: http://localhost:8001 ✅ (Running - Per-Service DB)
 - **Auth Service**: http://localhost:9000 ✅ (Running - Per-Service DB)
 - **Company API**: http://localhost:8002 ✅ (Running - Per-Service DB)
@@ -457,7 +488,7 @@ All services are deployed on **AWS ECS Fargate** behind an **Application Load Ba
 **Automated Test Suite**
 - **Framework**: Vitest + React Testing Library + Jest DOM
 - **Coverage**: 201 tests across 21 page test files + setup configuration
-- **Test Categories**: 
+- **Test Categories**:
   - 🏠 Marketing Pages (2 files, 18 tests)
   - 🔐 Authentication (4 files, 40 tests)
   - 👤 User Dashboards (5 files, 50 tests)
@@ -509,13 +540,13 @@ All services are deployed on **AWS ECS Fargate** behind an **Application Load Ba
 
 ### What Each Test Validates
 
-✅ **Page Rendering**: Component renders without crashing, all major sections display  
-✅ **Accessibility**: ARIA roles assigned, semantic HTML, keyboard navigation, screen reader compatible  
-✅ **Content**: Headings, text, forms, buttons visible and functional  
-✅ **Navigation**: Links present, buttons clickable, routes working properly  
-✅ **User Interaction**: Forms can be filled, buttons respond, modals open/close  
-✅ **Responsive Design**: Mobile, tablet, and desktop layouts all working  
-✅ **Error Handling**: Error messages display, fallback content shown, graceful degradation  
+✅ **Page Rendering**: Component renders without crashing, all major sections display
+✅ **Accessibility**: ARIA roles assigned, semantic HTML, keyboard navigation, screen reader compatible
+✅ **Content**: Headings, text, forms, buttons visible and functional
+✅ **Navigation**: Links present, buttons clickable, routes working properly
+✅ **User Interaction**: Forms can be filled, buttons respond, modals open/close
+✅ **Responsive Design**: Mobile, tablet, and desktop layouts all working
+✅ **Error Handling**: Error messages display, fallback content shown, graceful degradation
 
 ### Running Tests
 
@@ -738,7 +769,7 @@ kubectl apply -f k8s/frontend-deployment.yaml
 
 | Environment | Build Command | Target | URL | Notes |
 |-------------|---------------|--------|-----|-------|
-| **Local Dev** | `npm run dev` | Localhost | http://localhost:5173 | Hot reload, debug enabled |
+| **Local Dev** | `npm run dev` | Localhost | http://localhost:5174 | Hot reload, debug enabled |
 | **Local Preview** | `npm run build && npx vite preview` | Localhost | http://localhost:4174 | Production build preview |
 | **Docker** | `docker build -t nilbx-frontend .` | Container | http://localhost:8080 | Containerized deployment |
 | **AWS Staging** | `npm run build` | S3 + CloudFront | https://staging.nilbx.com | Pre-production testing |
@@ -803,7 +834,7 @@ kubectl rollout undo deployment/frontend-deployment --to-revision=2
 ### Available Scripts
 ```bash
 # Development
-npm run dev                    # Start development server (port 5173)
+npm run dev                    # Start development server (port 5174)
 npm run dev:per-service        # Start per-service mode explicitly
 
 # Building
@@ -911,7 +942,269 @@ function DealPreview({ athlete, amount }) {
 - Safari 14+
 - Edge 88+
 
-## 🤝 Contributing
+## 🛠️ Development Tools
+
+### CODEX ChatGPT VSCode Extension Setup
+
+The CODEX ChatGPT extension provides AI-powered code assistance directly in VSCode. Follow these steps to set it up for optimal NILBx frontend development.
+
+#### **Installation**
+
+1. **Install the Extension**
+   ```bash
+   # In VSCode Command Palette (Cmd+Shift+P / Ctrl+Shift+P)
+   # Type: "Extensions: Install Extensions"
+   # Search for: "CODEX ChatGPT"
+   # Click Install
+   ```
+
+2. **Verify Installation**
+   - Check VSCode Extensions sidebar for "CODEX ChatGPT"
+   - Version should be latest (check for updates if needed)
+
+#### **Configuration**
+
+1. **Get OpenAI API Key**
+   ```bash
+   # Visit: https://platform.openai.com/api-keys
+   # Create new API key with appropriate permissions
+   # Copy the API key (starts with "sk-")
+   ```
+
+2. **Configure Extension Settings**
+   ```json
+   // VSCode Settings (settings.json)
+   {
+     "codex-chatgpt.apiKey": "sk-your-api-key-here",
+     "codex-chatgpt.model": "gpt-4",
+     "codex-chatgpt.maxTokens": 4096,
+     "codex-chatgpt.temperature": 0.7,
+     "codex-chatgpt.contextWindow": 8000
+   }
+   ```
+
+3. **Project-Specific Configuration**
+   ```json
+   // .vscode/settings.json (project-specific)
+   {
+     "codex-chatgpt.contextFiles": [
+       "package.json",
+       "vite.config.js",
+       "src/utils/config.js",
+       "src/services/api.js"
+     ],
+     "codex-chatgpt.codeStyle": "react-typescript",
+     "codex-chatgpt.framework": "react-vite",
+     "codex-chatgpt.linting": "eslint-prettier"
+   }
+   ```
+
+#### **Usage Instructions**
+
+##### **Basic Commands**
+
+1. **Inline Code Generation**
+   ```javascript
+   // Type a comment describing what you want
+   // CODEX: Create a React component for user profile display
+
+   // Press Ctrl+Shift+G (or Cmd+Shift+G on Mac) to generate
+   ```
+
+2. **Code Explanation**
+   ```javascript
+   // Select code and use:
+   // Command: "CODEX: Explain Selected Code"
+   // Shortcut: Ctrl+Shift+E
+   ```
+
+3. **Code Refactoring**
+   ```javascript
+   // Select code and use:
+   // Command: "CODEX: Refactor Selected Code"
+   // Shortcut: Ctrl+Shift+R
+   ```
+
+##### **NILBx-Specific Commands**
+
+1. **Component Generation**
+   ```javascript
+   // For NILBx components, use these prompts:
+
+   // CODEX: Create a React component for athlete profile card with sponsor button
+   // CODEX: Generate a deal creation modal with Stripe integration
+   // CODEX: Build a marketplace user card with follower count and tier badge
+   ```
+
+2. **API Integration**
+   ```javascript
+   // For service integration:
+
+   // CODEX: Create API service function for fetching athlete deals
+   // CODEX: Generate authentication hook for JWT token management
+   // CODEX: Build feature flag service integration
+   ```
+
+3. **Testing Assistance**
+   ```javascript
+   // For test generation:
+
+   // CODEX: Generate unit tests for CreateDealModal component
+   // CODEX: Create integration test for payment flow
+   // CODEX: Build accessibility tests for user profile page
+   ```
+
+##### **Advanced Features**
+
+1. **Context-Aware Generation**
+   ```javascript
+   // The extension automatically includes:
+   // - Current file context
+   // - Project structure
+   // - Import statements
+   // - Component patterns from existing code
+   ```
+
+2. **Multi-File Operations**
+   ```javascript
+   // CODEX: Create a complete feature for user notifications
+   // - Generates component, service, and test files
+   // - Includes proper imports and exports
+   // - Follows project conventions
+   ```
+
+3. **Code Review Assistance**
+   ```javascript
+   // CODEX: Review this component for React best practices
+   // CODEX: Suggest performance optimizations for this code
+   // CODEX: Check for accessibility compliance
+   ```
+
+#### **Keyboard Shortcuts**
+
+| Command | Shortcut | Description |
+|---------|----------|-------------|
+| Generate Code | `Ctrl+Shift+G` | Generate code from comment/context |
+| Explain Code | `Ctrl+Shift+E` | Explain selected code |
+| Refactor Code | `Ctrl+Shift+R` | Refactor selected code |
+| Optimize Code | `Ctrl+Shift+O` | Optimize performance |
+| Add Tests | `Ctrl+Shift+T` | Generate tests for code |
+| Fix Issues | `Ctrl+Shift+F` | Fix linting/code issues |
+
+#### **Best Practices for NILBx Development**
+
+1. **Component Development**
+   ```javascript
+   // Always specify the framework and context:
+   // CODEX: Create a React functional component for athlete dashboard using hooks
+
+   // Include existing patterns:
+   // CODEX: Create component similar to AthleteUserPage but for sponsors
+   ```
+
+2. **API Integration**
+   ```javascript
+   // Specify service endpoints:
+   // CODEX: Create API call to auth service for user login
+   // CODEX: Generate fetch function for company API deals endpoint
+   ```
+
+3. **Styling and UI**
+   ```javascript
+   // Include design system context:
+   // CODEX: Create responsive card component using Tailwind CSS
+   // CODEX: Build modal with glassmorphism effect like landing page
+   ```
+
+4. **Error Handling**
+   ```javascript
+   // Specify error scenarios:
+   // CODEX: Add error handling for failed API calls with user feedback
+   // CODEX: Create loading states for async operations
+   ```
+
+#### **Next Steps for AWS Deployment**
+
+**For AWS deployment, first configure usable credentials, re-run `./bootstrap_terraform_backend.sh` to create the S3/DynamoDB backend, then continue with `./nil-deploy.sh deploy-dev`.**
+
+#### **Troubleshooting**
+
+1. **API Key Issues**
+   ```bash
+   # Check API key configuration
+   # VSCode Settings → Extensions → CODEX ChatGPT → API Key
+
+   # Verify key format: sk-...
+   # Check OpenAI account credits
+   ```
+
+2. **Generation Quality**
+   ```json
+   // Adjust settings for better results:
+   {
+     "codex-chatgpt.temperature": 0.3,  // More focused
+     "codex-chatgpt.maxTokens": 2048,   // Shorter responses
+     "codex-chatgpt.model": "gpt-4"     // Better quality
+   }
+   ```
+
+3. **Context Issues**
+   ```json
+   // Add more context files:
+   {
+     "codex-chatgpt.contextFiles": [
+       "src/components/ui/Button.jsx",
+       "src/hooks/useAuth.js",
+       "src/services/api.js",
+       "tailwind.config.js"
+     ]
+   }
+   ```
+
+#### **Integration with NILBx Workflow**
+
+1. **Component Library Development**
+   ```javascript
+   // CODEX: Create a new button variant for the design system
+   // CODEX: Build a form component with validation for user registration
+   ```
+
+2. **Feature Implementation**
+   ```javascript
+   // CODEX: Implement the complete flow for creating a traditional deal
+   // CODEX: Add Web3 wallet connection for smart contract deals
+   ```
+
+3. **Testing and Quality**
+   ```javascript
+   // CODEX: Generate comprehensive tests for the new feature
+   // CODEX: Add accessibility tests for screen reader compatibility
+   ```
+
+4. **Documentation**
+   ```javascript
+   // CODEX: Create JSDoc comments for this complex function
+   // CODEX: Generate usage examples for the new component
+   ```
+
+#### **Performance Tips**
+
+1. **Response Time**
+   - Use GPT-4 for better quality (slower)
+   - Use GPT-3.5-turbo for faster responses
+   - Adjust max tokens based on task complexity
+
+2. **Context Management**
+   - Keep context files relevant to current task
+   - Use specific prompts rather than generic ones
+   - Include file paths for multi-file operations
+
+3. **Rate Limiting**
+   - OpenAI has rate limits based on your account tier
+   - Monitor usage in OpenAI dashboard
+   - Consider upgrading for higher limits
+
+### Available Scripts
 
 ### Development Workflow
 1. Fork the repository

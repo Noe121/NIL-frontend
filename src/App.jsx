@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext.jsx';
 import { ApiProvider } from './contexts/ApiContext.jsx';
 import { Web3Provider } from './contexts/Web3Context.jsx';
 import { DataManagementProvider } from './contexts/DataManagementContext.jsx';
+import { ReactQueryProvider } from './lib/react-query';
 import { useAuth } from './hooks/useAuth.js';
 import { config, utils, APP_MODE, IS_CENTRALIZED, IS_DEV } from './utils/config.js';
 
@@ -55,6 +56,10 @@ const DealsPage = lazy(() => import('./pages/DealsPage.jsx'));
 const PremiumDealsPage = lazy(() => import('./pages/PremiumDealsPage.jsx'));
 const LearnMorePage = lazy(() => import('./pages/LearnMorePage.jsx'));
 
+// Admin Pages
+const VerificationPanel = lazy(() => import('./pages/admin/VerificationPanel.jsx'));
+const CRMDashboardPage = lazy(() => import('./pages/CRMDashboardPage.jsx'));
+
 // Components
 import NavBar from './components/NavBar.jsx';
 
@@ -78,15 +83,17 @@ function TestPage() {
 export function SafeProvider({ children }) {
   try {
     return (
-      <AuthProvider>
-        <ApiProvider>
-          <Web3Provider>
-            <DataManagementProvider>
-              {children}
-            </DataManagementProvider>
-          </Web3Provider>
-        </ApiProvider>
-      </AuthProvider>
+      <ReactQueryProvider>
+        <AuthProvider>
+          <ApiProvider>
+            <Web3Provider>
+              <DataManagementProvider>
+                {children}
+              </DataManagementProvider>
+            </Web3Provider>
+          </ApiProvider>
+        </AuthProvider>
+      </ReactQueryProvider>
     );
   } catch (error) {
     return (
@@ -113,7 +120,7 @@ export default function App() {
             <Route path="/fan" element={<FanLandingPage />} />
             <Route path="/agency" element={<AgencyLandingPage />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/register" element={<RoleSelection />} />
+            <Route path="/register" element={<Register />} />
             <Route path="/register/athlete" element={<AthleteRegistration />} />
             <Route path="/register/sponsor" element={<SponsorRegistration />} />
             <Route path="/register/fan" element={<FanRegistration />} />
@@ -201,6 +208,18 @@ export default function App() {
             <Route path="/privacy-settings" element={
               <ProtectedRoute>
                 <PrivacySettingsPage />
+              </ProtectedRoute>
+            } />
+
+            {/* Admin Routes */}
+            <Route path="/admin/verifications" element={
+              <ProtectedRoute role="admin">
+                <VerificationPanel />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/crm" element={
+              <ProtectedRoute roles={['admin', 'agency']}>
+                <CRMDashboardPage />
               </ProtectedRoute>
             } />
 

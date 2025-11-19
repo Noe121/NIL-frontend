@@ -343,13 +343,13 @@ class ApiService {
   }
 
   // Analytics
-  async getAthleteAnalytics(athleteId, timeframe = '30d') {
-    const response = await this.apiClient.get(`/athletes/${athleteId}/analytics?timeframe=${timeframe}`);
+  async getAthleteAnalytics(timeframe = '30d') {
+    const response = await this.apiClient.get(`/athletes/analytics?timeframe=${timeframe}`);
     return response.data.analytics;
   }
 
-  async getSponsorAnalytics(sponsorId, timeframe = '30d') {
-    const response = await this.apiClient.get(`/sponsors/${sponsorId}/analytics?timeframe=${timeframe}`);
+  async getSponsorAnalytics(timeframe = '30d') {
+    const response = await this.apiClient.get(`/sponsors/analytics?timeframe=${timeframe}`);
     return response.data.analytics;
   }
 

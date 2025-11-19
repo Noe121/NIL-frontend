@@ -3,9 +3,9 @@ import StudentAthletesCarousel from '@/components/Sports/StudentAthletesCarousel
 import DealsManagement from '@/components/Sports/DealsManagement';
 import ComplianceRules from '@/components/Sports/ComplianceRules';
 import SportsStatsCTA from '@/components/Sports/SportsStatsCTA';
-import Testimonials from '@/components/Landing/Testimonials';
-import EarlyAccess from '@/components/Landing/EarlyAccess';
-import Footer from '@/components/Landing/Footer';
+// import Testimonials from '@/components/Landing/Testimonials';
+// import EarlyAccess from '@/components/Landing/EarlyAccess';
+// import Footer from '@/components/Landing/Footer';
 import { useNavigate } from 'react-router-dom';
 
 const SportsPage = () => {
@@ -22,9 +22,9 @@ const SportsPage = () => {
       <DealsManagement />
       <ComplianceRules />
       <SportsStatsCTA />
-      <Testimonials />
-      <EarlyAccess />
-      <Footer />
+      {/* <Testimonials /> */}
+      {/* <EarlyAccess /> */}
+      {/* <Footer /> */}
     </>
   );
 };

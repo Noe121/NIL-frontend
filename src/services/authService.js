@@ -18,29 +18,27 @@ class AuthService {
   async login(credentials) {
     try {
       console.log('Attempting login with auth service URL:', this.baseUrl);
-      
-      // Use form data for OAuth2PasswordRequestForm
-      const formData = new FormData();
-      formData.append('username', credentials.email || credentials.username);
-      formData.append('password', credentials.password);
 
-      const response = await fetch(`${this.baseUrl}/login`, {
+      const response = await fetch(`${this.baseUrl}/login-json`, {
         method: 'POST',
         headers: {
-          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: formData
+        body: JSON.stringify({
+          email: credentials.email || credentials.username,
+          password: credentials.password
+        })
       });      if (!response.ok) {
         const error = await response.json();
         throw new Error(error.detail || 'Login failed');
       }
 
       const data = await response.json();
-      
+
       if (data.access_token) {
         this.setToken(data.access_token);
-        
+
         // Set session timeout
         if (this.sessionTimeout > 0) {
           this.setSessionTimeout();
@@ -85,7 +83,7 @@ class AuthService {
         },
         body: JSON.stringify(userData)
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.detail || 'Registration failed');
@@ -99,7 +97,7 @@ class AuthService {
       };
     } catch (error) {
       console.error('Registration error:', error);
-      const errorMessage = error.response?.data?.detail || 
+      const errorMessage = error.response?.data?.detail ||
                          error.response?.data?.message ||
                          error.message ||
                          'Registration failed. Please try again.';
@@ -116,14 +114,15 @@ class AuthService {
   async logout() {
     try {
       const token = this.getToken();
-      
+
       if (token) {
         // Call backend logout endpoint
         await fetch(`${this.baseUrl}/logout`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
-          }
+          },
+          credentials: 'include'
         });
       }
     } catch (error) {
@@ -143,7 +142,7 @@ class AuthService {
   async getCurrentUser() {
     try {
       const token = this.getToken();
-      
+
       if (!token) {
         return { success: false, error: 'No token found' };
       }
@@ -152,7 +151,8 @@ class AuthService {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
-        }
+        },
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -164,7 +164,7 @@ class AuthService {
       }
 
       const user = await response.json();
-      
+
       return {
         success: true,
         user,
@@ -189,7 +189,8 @@ class AuthService {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.getToken()}`
-        }
+        },
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -197,7 +198,7 @@ class AuthService {
       }
 
       const data = await response.json();
-      
+
       if (data.access_token) {
         this.setToken(data.access_token);
         return { success: true, token: data.access_token };
@@ -225,6 +226,7 @@ class AuthService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.getToken()}`
         },
+        credentials: 'include',
         body: JSON.stringify(passwordData)
       });
 
@@ -320,7 +322,7 @@ class AuthService {
       // Basic JWT token validation (check if it's not expired)
       const payload = JSON.parse(atob(token.split('.')[1]));
       const currentTime = Date.now() / 1000;
-      
+
       if (payload.exp && payload.exp < currentTime) {
         this.clearToken();
         return false;
@@ -370,7 +372,7 @@ class AuthService {
   // Session timeout management
   setSessionTimeout() {
     this.clearSessionTimeout();
-    
+
     this.sessionTimeoutId = setTimeout(() => {
       console.log('Session timeout reached, logging out...');
       this.logout();
@@ -387,6 +389,102 @@ class AuthService {
   extendSession() {
     if (this.isAuthenticated() && this.sessionTimeout > 0) {
       this.setSessionTimeout();
+    }
+  }
+
+  // Verification Workflow Methods
+
+  /**
+   * Get pending verifications (admin only)
+   */
+  async getPendingVerifications() {
+    try {
+      const token = this.getToken();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${this.baseUrl}/admin/pending-verifications`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to fetch pending verifications');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching pending verifications:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify user (approve/reject) (admin only)
+   */
+  async verifyUser(userId, approved, notes = null) {
+    try {
+      const token = this.getToken();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${this.baseUrl}/admin/verify-user/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          approved,
+          notes
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to verify user');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error verifying user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get verification statistics (admin only)
+   */
+  async getVerificationStats() {
+    try {
+      const token = this.getToken();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${this.baseUrl}/admin/verification-stats`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to fetch verification stats');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching verification stats:', error);
+      throw error;
     }
   }
 }

@@ -44,42 +44,42 @@ function web3Reducer(state, action) {
   switch (action.type) {
     case WEB3_ACTIONS.SET_PROVIDER:
       return { ...state, provider: action.payload };
-      
+
     case WEB3_ACTIONS.SET_SIGNER:
       return { ...state, signer: action.payload };
-      
+
     case WEB3_ACTIONS.SET_ACCOUNT:
-      return { 
-        ...state, 
+      return {
+        ...state,
         account: action.payload,
         isConnected: !!action.payload
       };
-      
+
     case WEB3_ACTIONS.SET_NETWORK:
-      return { 
-        ...state, 
+      return {
+        ...state,
         network: action.payload,
         networkSupported: action.payload ? action.payload.chainId === parseInt(config.blockchain?.chainId || '1') : false
       };
-      
+
     case WEB3_ACTIONS.SET_CONTRACTS:
       return { ...state, contracts: action.payload };
-      
+
     case WEB3_ACTIONS.SET_LOADING:
       return { ...state, isLoading: action.payload };
-      
+
     case WEB3_ACTIONS.SET_ERROR:
       return { ...state, error: action.payload, isLoading: false };
-      
+
     case WEB3_ACTIONS.CLEAR_ERROR:
       return { ...state, error: null };
-      
+
     case WEB3_ACTIONS.DISCONNECT:
-      return { 
+      return {
         ...initialState,
         provider: state.provider // Keep provider for read-only operations
       };
-      
+
     default:
       return state;
   }
@@ -100,7 +100,16 @@ export function Web3Provider({ children }) {
 
   // Initialize provider on mount
   useEffect(() => {
-    initializeProvider();
+    // Only initialize Web3 if blockchain features are enabled
+    if (config.features?.blockchain) {
+      initializeProvider();
+    } else {
+      // Set a flag indicating Web3 is disabled
+      dispatch({ type: WEB3_ACTIONS.SET_LOADING, payload: false });
+      if (config.ui.debugMode) {
+        console.log('🔗 Web3 features disabled in per-service mode');
+      }
+    }
   }, []);
 
   // Listen for account changes
@@ -108,7 +117,7 @@ export function Web3Provider({ children }) {
     if (window.ethereum) {
       window.ethereum.on('accountsChanged', handleAccountsChanged);
       window.ethereum.on('chainChanged', handleChainChanged);
-      
+
       return () => {
         window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
         window.ethereum.removeListener('chainChanged', handleChainChanged);
@@ -122,7 +131,7 @@ export function Web3Provider({ children }) {
       dispatch({ type: WEB3_ACTIONS.SET_LOADING, payload: true });
 
       let provider;
-      
+
       if (window.ethereum) {
         // MetaMask or other injected wallet
         provider = new ethers.BrowserProvider(window.ethereum);
@@ -143,7 +152,7 @@ export function Web3Provider({ children }) {
       await initializeContracts(provider);
 
       dispatch({ type: WEB3_ACTIONS.SET_LOADING, payload: false });
-      
+
       if (config.ui.debugMode) {
         console.log('🔗 Web3 provider initialized:', {
           hasMetaMask: !!window.ethereum,
@@ -161,7 +170,7 @@ export function Web3Provider({ children }) {
   const initializeContracts = async (provider, signer = null) => {
     try {
       const contractProvider = signer || provider;
-      
+
       const contracts = {
         playerLegacyNFT: new ethers.Contract(
           CONTRACT_ADDRESSES.PlayerLegacyNFT,
@@ -176,7 +185,7 @@ export function Web3Provider({ children }) {
       };
 
       dispatch({ type: WEB3_ACTIONS.SET_CONTRACTS, payload: contracts });
-      
+
       if (config.ui.debugMode) {
         console.log('📄 Smart contracts initialized:', Object.keys(contracts));
       }
@@ -188,6 +197,10 @@ export function Web3Provider({ children }) {
 
   // Connect wallet
   const connectWallet = async () => {
+    if (!config.features?.blockchain) {
+      throw new Error('Blockchain features are disabled in this mode');
+    }
+
     try {
       if (!window.ethereum) {
         throw new Error('MetaMask not installed');
@@ -232,7 +245,7 @@ export function Web3Provider({ children }) {
   // Disconnect wallet
   const disconnectWallet = () => {
     dispatch({ type: WEB3_ACTIONS.DISCONNECT });
-    
+
     if (config.ui.debugMode) {
       console.log('🔌 Wallet disconnected');
     }
@@ -255,13 +268,17 @@ export function Web3Provider({ children }) {
 
   // Switch to correct network
   const switchNetwork = async () => {
+    if (!config.features?.blockchain) {
+      throw new Error('Blockchain features are disabled in this mode');
+    }
+
     try {
       if (!window.ethereum) {
         throw new Error('MetaMask not installed');
       }
 
       const targetChainId = '0x' + parseInt(config.blockchain?.chainId || '1').toString(16);
-      
+
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: targetChainId }]
@@ -275,7 +292,7 @@ export function Web3Provider({ children }) {
   // Get account balance
   const getBalance = async (address = state.account) => {
     if (!state.provider || !address) return '0';
-    
+
     try {
       const balance = await state.provider.getBalance(address);
       return ethers.formatEther(balance);
@@ -289,19 +306,20 @@ export function Web3Provider({ children }) {
   const contextValue = {
     // State
     ...state,
-    
+
     // Actions
     connectWallet,
     disconnectWallet,
     switchNetwork,
     getBalance,
-    
+
     // Contract helpers
     contracts: state.contracts,
-    
+
     // Utilities
     clearError: () => dispatch({ type: WEB3_ACTIONS.CLEAR_ERROR }),
-    isBlockchainEnabled: config.features?.blockchain || false
+    isBlockchainEnabled: config.features?.blockchain || false,
+    isWeb3Initialized: config.features?.blockchain ? !state.isLoading && !state.error : true
   };
 
   return (
@@ -314,11 +332,11 @@ export function Web3Provider({ children }) {
 // Custom hook to use Web3 context
 export function useWeb3() {
   const context = useContext(Web3Context);
-  
+
   if (!context) {
     throw new Error('useWeb3 must be used within a Web3Provider');
   }
-  
+
   return context;
 }
 

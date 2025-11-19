@@ -2,6 +2,19 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 
+const ensureBodyEntryScriptPlugin = () => ({
+  name: 'ensure-body-entry-script',
+  transformIndexHtml(html) {
+    const scriptPattern = /<script\s+type="module"[^>]*src="[^"]*main[^"]*"[^>]*><\/script>/i;
+    const match = html.match(scriptPattern);
+    if (!match) {
+      return html;
+    }
+    const withoutScript = html.replace(scriptPattern, '');
+    return withoutScript.replace('</body>', `    ${match[0]}\n  </body>`);
+  }
+});
+
 export default defineConfig(({ command, mode }) => {
   // Load environment variables
   const env = loadEnv(mode, process.cwd(), '');
@@ -34,15 +47,15 @@ export default defineConfig(({ command, mode }) => {
   const isStandaloneMode = appMode === 'standalone';
   const isCentralizedMode = appMode === 'centralized';
   
-  // Dynamic port assignment based on mode: 5173 for standalone, 5174 for centralized
-  const devPort = appMode === 'centralized' ? 5174 : 5173;
-  const previewPort = appMode === 'centralized' ? 4174 : 5173;
+  // Dynamic port assignment based on mode: 5173 for standalone, 5174 for centralized, or use env var
+  const devPort = parseInt(env.VITE_DEV_PORT) || (appMode === 'centralized' ? 5174 : 5173);
+  const previewPort = parseInt(env.VITE_PREVIEW_PORT) || (appMode === 'centralized' ? 4174 : 4173);
   
   console.log(`🚀 Frontend starting in ${appMode} mode`);
   console.log(`📡 Dev server will run on port ${devPort}`);
   
   return {
-    plugins: [react()],
+    plugins: [react(), ensureBodyEntryScriptPlugin()],
     root: process.cwd(),
     base: '/',
     publicDir: 'public',
@@ -122,56 +135,8 @@ export default defineConfig(({ command, mode }) => {
           main: './index.html' // React app as main entry
         },
         output: {
-          manualChunks: (id) => {
-            // Vendor libraries
-            if (id.includes('node_modules')) {
-              // React ecosystem
-              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-                return 'react-vendor';
-              }
-              // UI libraries
-              if (id.includes('framer-motion') || id.includes('@radix-ui') || id.includes('lucide-react')) {
-                return 'ui-vendor';
-              }
-              // HTTP and state management
-              if (id.includes('axios') || id.includes('@tanstack') || id.includes('zustand')) {
-                return 'data-vendor';
-              }
-              // Form handling
-              if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
-                return 'forms-vendor';
-              }
-              // Web3 and blockchain (when implemented)
-              if (id.includes('ethers') || id.includes('web3') || id.includes('@wagmi') || id.includes('@rainbow-me')) {
-                return 'web3-vendor';
-              }
-              // Other node_modules
-              return 'vendor';
-            }
-            
-            // Application code splitting
-            if (id.includes('/src/')) {
-              // Pages/components that are rarely used together
-              if (id.includes('/pages/') || id.includes('/views/')) {
-                return 'pages';
-              }
-              // Contexts and providers
-              if (id.includes('/contexts/') || id.includes('/providers/')) {
-                return 'contexts';
-              }
-              // Utilities and helpers
-              if (id.includes('/utils/') || id.includes('/hooks/')) {
-                return 'utils';
-              }
-              // Services and API calls
-              if (id.includes('/services/') || id.includes('/api/')) {
-                return 'services';
-              }
-            }
-            
-            // Default chunk for everything else
-            return 'main';
-          }
+          // Use simple chunking to avoid module initialization issues
+          manualChunks: undefined
         }
       },
       // Optimize for the target mode

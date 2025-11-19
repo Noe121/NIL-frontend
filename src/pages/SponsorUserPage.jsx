@@ -28,7 +28,7 @@ const SponsorUserPage = () => {
       setIsLoading(true);
       try {
         // Fetch analytics
-        const analyticsData = await apiService.getSponsorAnalytics(user.id);
+        const analyticsData = await apiService.getSponsorAnalytics();
         setAnalytics(analyticsData);
 
         // Fetch active sponsorships

@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { dealService } from '../services/dealService.js';
 import { featureFlags } from '../services/featureFlagService.js';
 import { config } from '../utils/config.js';
+import StripeCheckout from '../components/StripeCheckout.jsx';
 
 export default function CreateDeal() {
   const location = useLocation();
@@ -20,9 +21,20 @@ export default function CreateDeal() {
   const [loading, setLoading] = useState(false);
   const [complianceValidation, setComplianceValidation] = useState(null);
   const [showComplianceDialog, setShowComplianceDialog] = useState(false);
+  const [paymentIntent, setPaymentIntent] = useState(null);
+  const [showCheckout, setShowCheckout] = useState(false);
 
-  // Get current user for compliance validation
-  const currentUser = JSON.parse(localStorage.getItem('user_data') || '{}');
+  const handlePaymentSuccess = (paymentIntent) => {
+    // Payment successful - redirect to success page or show success message
+    alert(`Payment successful! Payment ID: ${paymentIntent.id}`);
+    // In a real app, you'd redirect to a success page or update the deal status
+    window.location.href = '/dashboard/sponsor';
+  };
+
+  const handlePaymentError = (error) => {
+    console.error('Payment failed:', error);
+    alert('Payment failed. Please try again.');
+  };
 
   const validateDealCompliance = async () => {
     if (!currentUser.state || !currentUser.age || !currentUser.role) {
@@ -118,10 +130,15 @@ export default function CreateDeal() {
         template_data: templateData // Include full template data for backend processing
       };
 
+      // Create payment intent
       const payment = await dealService.createDeal(dealData);
 
-      // Redirect to Stripe checkout
-      window.location.href = payment.checkout_url;
+      // Set payment intent and show checkout
+      setPaymentIntent({
+        clientSecret: payment.client_secret,
+        amount: form.amount
+      });
+      setShowCheckout(true);
     } catch (error) {
       alert(error.message);
     } finally {
@@ -144,191 +161,212 @@ export default function CreateDeal() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-12 px-4">
       <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            {templateData ? `Create ${templateData.title}` : 'Create NIL Deal'}
-          </h1>
-          <p className="text-lg text-gray-600">
-            {templateData
-              ? `Using ${templateData.description} template`
-              : 'Connect athletes with sponsors through Name, Image & Likeness opportunities'
-            }
-          </p>
-        </div>
-
-        {templateData && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2">
-                <span className="text-2xl">📋</span>
-                <h3 className="font-semibold text-blue-900">Template: {templateData.title}</h3>
-              </div>
+        {showCheckout && paymentIntent ? (
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <StripeCheckout
+              clientSecret={paymentIntent.clientSecret}
+              amount={paymentIntent.amount}
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+            />
+            <div className="mt-4 text-center">
               <button
-                onClick={() => {
-                  setTemplateData(null);
-                  // Reset form to empty state
-                  setFormData({
-                    athleteName: '',
-                    athleteSport: '',
-                    athleteSchool: '',
-                    sponsorName: '',
-                    sponsorCompany: '',
-                    dealValue: '',
-                    dealType: '',
-                    dealDescription: '',
-                    startDate: '',
-                    endDate: '',
-                    terms: '',
-                    paymentSchedule: '',
-                    deliverables: '',
-                    exclusivity: '',
-                    terminationClauses: '',
-                    governingLaw: '',
-                    signatures: ''
-                  });
-                }}
-                className="text-sm text-blue-600 hover:text-blue-800 underline"
+                onClick={() => setShowCheckout(false)}
+                className="text-blue-600 hover:text-blue-800 underline text-sm"
               >
-                Clear Template
+                ← Back to Deal Form
               </button>
             </div>
-            <p className="text-blue-800 text-sm">{templateData.description}</p>
-            <div className="mt-2 text-xs text-blue-700">
-              Workflow Type: {templateData.type.replace('_', ' ')}
+          </div>
+        ) : (
+          <>
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                {templateData ? `Create ${templateData.title}` : 'Create NIL Deal'}
+              </h1>
+              <p className="text-lg text-gray-600">
+                {templateData
+                  ? `Using ${templateData.description} template`
+                  : 'Connect athletes with sponsors through Name, Image & Likeness opportunities'
+                }
+              </p>
+            </div>
+
+            {templateData && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-2xl">📋</span>
+                    <h3 className="font-semibold text-blue-900">Template: {templateData.title}</h3>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setTemplateData(null);
+                      // Reset form to empty state
+                      setFormData({
+                        athleteName: '',
+                        athleteSport: '',
+                        athleteSchool: '',
+                        sponsorName: '',
+                        sponsorCompany: '',
+                        dealValue: '',
+                        dealType: '',
+                        dealDescription: '',
+                        startDate: '',
+                        endDate: '',
+                        terms: '',
+                        paymentSchedule: '',
+                        deliverables: '',
+                        exclusivity: '',
+                        terminationClauses: '',
+                        governingLaw: '',
+                        signatures: ''
+                      });
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Clear Template
+                  </button>
+                </div>
+                <p className="text-blue-800 text-sm">{templateData.description}</p>
+                <div className="mt-2 text-xs text-blue-700">
+                  Workflow Type: {templateData.type.replace('_', ' ')}
+                </div>
+              </div>
+            )}
+
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Athlete ID
+                    </label>
+                    <input
+                      name="athlete_id"
+                      type="number"
+                      placeholder="123"
+                      value={form.athlete_id}
+                      onChange={(e) => setForm({ ...form, athlete_id: e.target.value })}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Deal Amount ($)
+                    </label>
+                    <input
+                      name="amount"
+                      type="number"
+                      step="0.01"
+                      placeholder="500.00"
+                      value={form.amount}
+                      onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Hotspot Name
+                  </label>
+                  <input
+                    name="hotspot_name"
+                    placeholder="Downtown Grill & Bar"
+                    value={form.hotspot_name}
+                    onChange={(e) => setForm({ ...form, hotspot_name: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Requirements
+                  </label>
+                  <textarea
+                    name="requirement"
+                    placeholder="1 Instagram post per week + tag @NILBx + story highlight featuring the hotspot"
+                    value={form.requirement}
+                    onChange={(e) => setForm({ ...form, requirement: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows="4"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-[1.02]"
+                >
+                  {loading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      Processing...
+                    </div>
+                  ) : (
+                    'Pay with Card → Create Deal'
+                  )}
+                </button>
+
+                <div className="text-center text-sm text-gray-500 space-y-1">
+                  <p>💰 NILBx Service Fee: 9% (${(parseFloat(form.amount || 0) * 0.09).toFixed(2)})</p>
+                  <p>🏆 Athlete Receives: 91% (${(parseFloat(form.amount || 0) * 0.91).toFixed(2)})</p>
+                </div>
+              </form>
+            </div>
+          </>
+        )}
+
+        {/* Compliance Validation Dialog */}
+        {showComplianceDialog && complianceValidation && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold mb-4">Compliance Check Failed</h3>
+              
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">Deal cannot be created due to compliance issues:</p>
+                
+                {complianceValidation.errors && complianceValidation.errors.length > 0 && (
+                  <div className="mb-3">
+                    <p className="font-medium text-red-700">Errors:</p>
+                    <ul className="list-disc list-inside text-sm text-red-600">
+                      {complianceValidation.errors.map((error, index) => (
+                        <li key={index}>{error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {complianceValidation.warnings && complianceValidation.warnings.length > 0 && (
+                  <div className="mb-3">
+                    <p className="font-medium text-yellow-700">Warnings:</p>
+                    <ul className="list-disc list-inside text-sm text-yellow-600">
+                      {complianceValidation.warnings.map((warning, index) => (
+                        <li key={index}>{warning}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowComplianceDialog(false)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  OK
+                </button>
+              </div>
             </div>
           </div>
         )}
-
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Athlete ID
-                </label>
-                <input
-                  name="athlete_id"
-                  type="number"
-                  placeholder="123"
-                  value={form.athlete_id}
-                  onChange={(e) => setForm({ ...form, athlete_id: e.target.value })}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Deal Amount ($)
-                </label>
-                <input
-                  name="amount"
-                  type="number"
-                  step="0.01"
-                  placeholder="500.00"
-                  value={form.amount}
-                  onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-              </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Hotspot Name
-              </label>
-              <input
-                name="hotspot_name"
-                placeholder="Downtown Grill & Bar"
-                value={form.hotspot_name}
-                onChange={(e) => setForm({ ...form, hotspot_name: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Requirements
-              </label>
-              <textarea
-                name="requirement"
-                placeholder="1 Instagram post per week + tag @NILBx + story highlight featuring the hotspot"
-                value={form.requirement}
-                onChange={(e) => setForm({ ...form, requirement: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                rows="4"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-[1.02]"
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Processing...
-                </div>
-              ) : (
-                'Pay with Card → Create Deal'
-              )}
-            </button>
-
-            <div className="text-center text-sm text-gray-500 space-y-1">
-              <p>💰 NILBx Service Fee: 9% (${(parseFloat(form.amount || 0) * 0.09).toFixed(2)})</p>
-              <p>🏆 Athlete Receives: 91% (${(parseFloat(form.amount || 0) * 0.91).toFixed(2)})</p>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {/* Compliance Validation Dialog */}
-      {showComplianceDialog && complianceValidation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Compliance Check Failed</h3>
-            
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">Deal cannot be created due to compliance issues:</p>
-              
-              {complianceValidation.errors && complianceValidation.errors.length > 0 && (
-                <div className="mb-3">
-                  <p className="font-medium text-red-700">Errors:</p>
-                  <ul className="list-disc list-inside text-sm text-red-600">
-                    {complianceValidation.errors.map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              
-              {complianceValidation.warnings && complianceValidation.warnings.length > 0 && (
-                <div className="mb-3">
-                  <p className="font-medium text-yellow-700">Warnings:</p>
-                  <ul className="list-disc list-inside text-sm text-yellow-600">
-                    {complianceValidation.warnings.map((warning, index) => (
-                      <li key={index}>{warning}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                onClick={() => setShowComplianceDialog(false)}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
