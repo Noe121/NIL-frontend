@@ -61,7 +61,17 @@ const NavigationBar = () => {
 
   // Navigation items based on role
   const getNavigationItems = () => {
-    if (!isAuthenticated) return [];
+    // Public navigation for non-authenticated users
+    if (!isAuthenticated) {
+      return [
+        { path: '/', label: 'Home', icon: '🏠' },
+        { path: '/marketplace', label: 'Marketplace', icon: '🏪' },
+        { path: '/community', label: 'Community', icon: '💬' },
+        { path: '/leaderboard', label: 'Leaderboard', icon: '🏆' },
+        { path: '/learn-more', label: 'Learn More', icon: '📚' },
+        { path: '/help', label: 'Help Center', icon: '🆘' }
+      ];
+    }
 
     const commonItems = [
       { path: '/dashboard', label: 'Dashboard', icon: '📊' },
@@ -411,8 +421,8 @@ const NavigationBar = () => {
             ))}
           </div>
 
-          {/* Logout Button */}
-          {isAuthenticated && (
+          {/* Logout Button or Auth Buttons */}
+          {isAuthenticated ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -433,6 +443,30 @@ const NavigationBar = () => {
               >
                 Logout
               </Button>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: navigationItems.length * 0.05 }}
+              className="mt-6 pt-6 border-t border-gray-200 space-y-3"
+            >
+              <Link
+                to="/auth"
+                onClick={closeMobileMenu}
+                className="flex items-center justify-center space-x-2 w-full px-6 py-3 bg-white border-2 border-blue-600 text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-all duration-200 min-h-[48px]"
+              >
+                <span className="text-lg">🔐</span>
+                <span>Sign In</span>
+              </Link>
+              <Link
+                to="/register"
+                onClick={closeMobileMenu}
+                className="flex items-center justify-center space-x-2 w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all duration-200 min-h-[48px]"
+              >
+                <span className="text-lg">✨</span>
+                <span>Sign Up</span>
+              </Link>
             </motion.div>
           )}
         </div>

@@ -685,6 +685,8 @@ VITE_DEBUG_MODE=false
 VITE_API_TIMEOUT=3000
 ```
 
+> 💡 **Tip:** To avoid stale endpoints, run `python scripts/sync_env_from_terraform.py` (from the `frontend/` directory) after every Terraform apply. The script reads the latest outputs (defaults to `../NILbx-env/environments/dev`) and overwrites the `VITE_*` service URLs in `.env.production`.
+
 ### Deployment Verification
 
 #### **Local Deployment Check**

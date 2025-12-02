@@ -228,7 +228,7 @@ export default function Register() {
         registrationData.metadata.verification_status = 'pending';
       }
 
-      await axios.post(`${config.authServiceUrl}register`, registrationData);
+      await axios.post(`${config.authServiceUrl}/register`, registrationData);
       setSuccess(true);
       setTimeout(() => navigate('/auth'), 2000);
     } catch (err) {

@@ -1,4 +1,5 @@
 import SportsHero from '@/components/Sports/SportsHero';
+import CollegeAthleteWorkflow from '@/components/Sports/CollegeAthleteWorkflow';
 import StudentAthletesCarousel from '@/components/Sports/StudentAthletesCarousel';
 import DealsManagement from '@/components/Sports/DealsManagement';
 import ComplianceRules from '@/components/Sports/ComplianceRules';
@@ -18,6 +19,7 @@ const SportsPage = () => {
   return (
     <>
       <SportsHero />
+      <CollegeAthleteWorkflow />
       <StudentAthletesCarousel onAthleteClick={handleAthleteClick} />
       <DealsManagement />
       <ComplianceRules />

@@ -151,9 +151,9 @@ export default defineConfig(({ command, mode }) => {
       __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
       // Force production URLs when building for production
       ...(isProductionBuild ? {
-        'import.meta.env.VITE_API_URL': JSON.stringify(finalEnv.VITE_API_URL || 'https://sd7zgk0gz5.execute-api.us-east-1.amazonaws.com/prod'),
-        'import.meta.env.VITE_AUTH_SERVICE_URL': JSON.stringify(finalEnv.VITE_AUTH_SERVICE_URL || 'https://sd7zgk0gz5.execute-api.us-east-1.amazonaws.com/prod/auth'),
-        'import.meta.env.VITE_COMPANY_API_URL': JSON.stringify(finalEnv.VITE_COMPANY_API_URL || 'https://sd7zgk0gz5.execute-api.us-east-1.amazonaws.com/prod/api/company'),
+        'import.meta.env.VITE_API_URL': JSON.stringify(finalEnv.VITE_API_URL || 'https://9fi12fz9ja.execute-api.us-east-1.amazonaws.com/prod'),
+        'import.meta.env.VITE_AUTH_SERVICE_URL': JSON.stringify(finalEnv.VITE_AUTH_SERVICE_URL || 'https://9fi12fz9ja.execute-api.us-east-1.amazonaws.com/prod/auth'),
+        'import.meta.env.VITE_COMPANY_API_URL': JSON.stringify(finalEnv.VITE_COMPANY_API_URL || 'https://9fi12fz9ja.execute-api.us-east-1.amazonaws.com/prod/api/company'),
         'import.meta.env.VITE_ENVIRONMENT': JSON.stringify('production'),
         'import.meta.env.VITE_DEBUG_MODE': JSON.stringify('false'),
       } : {})
