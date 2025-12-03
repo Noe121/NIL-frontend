@@ -2,6 +2,8 @@
  * Retry utility for handling temporary service outages and network issues
  */
 
+import { config } from './config';
+
 const DEFAULT_RETRY_CONFIG = {
   maxAttempts: 3,
   initialDelay: 1000, // Start with 1 second delay
@@ -107,7 +109,7 @@ export const retryWithRefresh = async (url, options = {}, retryConfig = {}) => {
           ...options,
           headers: {
             ...options.headers,
-            Authorization: `Bearer ${localStorage.getItem('nilbx_token')}`
+            Authorization: `Bearer ${localStorage.getItem(config.auth.storageKey)}`
           }
         };
         return retryFetch(url, newOptions, retryConfig);
@@ -129,7 +131,8 @@ const refreshAuthToken = async () => {
   if (!refreshToken) return false;
 
   try {
-    const response = await retryFetch('/auth/refresh', {
+    const refreshUrl = `${config.authServiceUrl}/refresh`;
+    const response = await retryFetch(refreshUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -139,7 +142,7 @@ const refreshAuthToken = async () => {
 
     if (response.ok) {
       const { token } = await response.json();
-      localStorage.setItem('nilbx_token', token);
+      localStorage.setItem(config.auth.storageKey, token);
       return true;
     }
 

@@ -31,11 +31,24 @@ const InfluencerUserPage = () => {
         // Fetch influencer profile
         const profileData = await apiService.getInfluencer(user.id);
         setInfluencer(profileData);
-        setFormData(profileData);
 
-        // Fetch analytics
-        const analyticsData = await apiService.getUserProfile();
-        setAnalytics(analyticsData);
+        // Initialize formData with profile data, adding default values for optional fields
+        setFormData({
+          ...profileData,
+          niche_category: profileData.niche_category || '',
+          university: profileData.university || '',
+          sport: profileData.sport || '',
+          bio: profileData.bio || '',
+          social_media: profileData.social_media || {}
+        });
+
+        // Fetch analytics - don't block if it fails
+        try {
+          const analyticsData = await apiService.getUserProfile();
+          setAnalytics(analyticsData);
+        } catch (analyticsError) {
+          console.warn('Could not fetch analytics:', analyticsError);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Failed to load profile data');
@@ -56,8 +69,8 @@ const InfluencerUserPage = () => {
         tier: result.new_tier
       }));
       toast.success(
-        result.tier_changed 
-          ? `Tier updated to ${result.new_tier}! 🎉` 
+        result.tier_changed
+          ? `Tier updated to ${result.new_tier}! 🎉`
           : 'Followers updated!'
       );
     } catch (error) {

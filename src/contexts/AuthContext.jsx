@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { authService } from '../services/authService';
+import { config } from '../utils/config';
 
 export const AuthContext = createContext();
 
@@ -20,19 +21,19 @@ export const AuthProvider = ({ children }) => {
     // Check if user is already authenticated on app start
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem('nilbx_token_per_service');
+        const token = localStorage.getItem(config.auth.storageKey);
         if (token) {
           const userData = await authService.getCurrentUser();
           if (userData.success) {
             setUser(userData.user);
             setIsAuthenticated(true);
           } else {
-            localStorage.removeItem('nilbx_token_per_service');
+            localStorage.removeItem(config.auth.storageKey);
           }
         }
       } catch (error) {
         console.error('Auth check failed:', error);
-        localStorage.removeItem('nilbx_token_per_service');
+        localStorage.removeItem(config.auth.storageKey);
       } finally {
         setLoading(false);
       }
@@ -42,7 +43,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (token, userData) => {
-    localStorage.setItem('nilbx_token_per_service', token);
+    localStorage.setItem(config.auth.storageKey, token);
     setUser(userData);
     setIsAuthenticated(true);
   };
@@ -55,7 +56,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setUser(null);
       setIsAuthenticated(false);
-      localStorage.removeItem('nilbx_token_per_service');
+      localStorage.removeItem(config.auth.storageKey);
     }
   };
 

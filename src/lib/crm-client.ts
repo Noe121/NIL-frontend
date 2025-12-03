@@ -62,7 +62,7 @@ class CRMApiClient {
     // Request interceptor (add auth token)
     this.client.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('nilbx_token_per-service'); // Use the storage key directly
+        const token = localStorage.getItem(config.auth.storageKey);
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }

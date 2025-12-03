@@ -61,13 +61,13 @@ const getApiConfig = () => {
 
     // API Endpoints with environment-aware fallbacks
     apiUrl: IS_PROD
-      ? (getEnvVar('VITE_API_URL') || 'https://9fi12fz9ja.execute-api.us-east-1.amazonaws.com/prod')
+      ? (getEnvVar('VITE_API_URL') || 'https://dev.nilbx.com/api')
       : (getEnvVar('VITE_API_URL') || (IS_CENTRALIZED ? 'http://localhost:8000' : IS_PER_SERVICE ? 'http://localhost:8001' : 'http://localhost:8002')),
     authServiceUrl: IS_PROD
-      ? (getEnvVar('VITE_AUTH_SERVICE_URL') || 'https://9fi12fz9ja.execute-api.us-east-1.amazonaws.com/prod/auth')
+      ? (getEnvVar('VITE_AUTH_SERVICE_URL') || 'https://dev.nilbx.com/auth')
       : (getEnvVar('VITE_AUTH_SERVICE_URL') || 'http://localhost:9000'),
     companyApiUrl: IS_PROD
-      ? (getEnvVar('VITE_COMPANY_API_URL') || 'https://9fi12fz9ja.execute-api.us-east-1.amazonaws.com/prod/api/company')
+      ? (getEnvVar('VITE_COMPANY_API_URL') || 'https://dev.nilbx.com/api/company')
       : (getEnvVar('VITE_COMPANY_API_URL') || 'http://localhost:8002'),
     crmApiUrl: IS_PROD
       ? (getEnvVar('VITE_CRM_API_URL') || 'https://crm.nilbx.com')
