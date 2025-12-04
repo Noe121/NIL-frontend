@@ -14,7 +14,7 @@ const InfluencerUserPage = () => {
   const { user, logout } = useAuth();
   const { apiService } = useApi();
   const [influencer, setInfluencer] = useState(null);
-  const [analytics, setAnalytics] = useState(null);
+  const [analytics, setAnalytics] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
@@ -42,13 +42,9 @@ const InfluencerUserPage = () => {
           social_media: profileData.social_media || {}
         });
 
-        // Fetch analytics - don't block if it fails
-        try {
-          const analyticsData = await apiService.getUserProfile();
-          setAnalytics(analyticsData);
-        } catch (analyticsError) {
-          console.warn('Could not fetch analytics:', analyticsError);
-        }
+        // Normalize analytics to an array so AnalyticsChart can always map safely
+        const analyticsData = Array.isArray(profileData.analytics) ? profileData.analytics : [];
+        setAnalytics(analyticsData);
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Failed to load profile data');

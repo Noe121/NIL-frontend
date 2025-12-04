@@ -6,7 +6,7 @@
  * Integrates with Deliverable Service (Port 8011)
  */
 
-const DELIVERABLE_SERVICE_URL = 'http://localhost:8011';
+const DELIVERABLE_SERVICE_URL = import.meta.env.VITE_DELIVERABLE_SERVICE_URL || 'http://localhost:8011';
 
 /**
  * Deliverable Service

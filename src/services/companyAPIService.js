@@ -6,7 +6,7 @@
  * Integrates with Company API (Port 8003)
  */
 
-const COMPANY_API_URL = 'http://localhost:8003';
+const COMPANY_API_URL = import.meta.env.VITE_COMPANY_API_URL || 'http://localhost:8003';
 
 /**
  * Company API Service

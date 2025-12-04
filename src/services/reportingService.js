@@ -6,7 +6,7 @@
  * Backend Port: 8000 (Reporting Service)
  */
 
-const REPORTING_SERVICE_URL = 'http://localhost:8000';
+const REPORTING_SERVICE_URL = import.meta.env.VITE_REPORTING_SERVICE_URL || 'http://localhost:8000';
 
 // MARK: - Enums and Constants
 

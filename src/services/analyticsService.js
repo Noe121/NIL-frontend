@@ -6,8 +6,8 @@
  * Integrates with Analytics Service (Port 8006) and Advanced Analytics (Port 8016)
  */
 
-const ANALYTICS_URL = 'http://localhost:8006';
-const ADVANCED_ANALYTICS_URL = 'http://localhost:8016';
+const ANALYTICS_URL = import.meta.env.VITE_ANALYTICS_URL || 'http://localhost:8006';
+const ADVANCED_ANALYTICS_URL = import.meta.env.VITE_ADVANCED_ANALYTICS_URL || 'http://localhost:8016';
 
 /**
  * Analytics Service

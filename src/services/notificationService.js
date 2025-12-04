@@ -5,7 +5,7 @@
  * Handles web notifications and integrates with backend Notification Service (Port 8007)
  */
 
-const NOTIFICATION_SERVICE_URL = 'http://localhost:8007';
+const NOTIFICATION_SERVICE_URL = import.meta.env.VITE_NOTIFICATION_SERVICE_URL || 'http://localhost:8007';
 
 /**
  * Notification Service
